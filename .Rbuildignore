@@ -1,0 +1,4 @@
+^\.gitignore$
+^inst/scripts$
+^.*\.Rproj$
+^\.Rproj\.user$
