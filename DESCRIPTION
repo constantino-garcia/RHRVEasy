@@ -1,0 +1,20 @@
+Package: RHRVEasy
+Title: Simplified statistical analysis of Heart Rate Variability data 
+Version: 0.0.0.9000
+Authors@R: c(person("Abraham", "Otero",
+                      email = "aotero@ceu.es",
+                      role = c("aut", "cre")),
+          person("Constantino A.", "Garcia",
+                            email = "constantino.garciama@ceu.es",
+                            role = c("aut")),
+          person("Sofía", "Bardají",
+                              role = c("aut")))
+Description: Runs time-based analysis, frequency-based analysis and non-linear analysis
+  of Heart Rate Variability data with the aim of performing a statistical comparison 
+  between several groups (e.g., control and treatment). The user just needs to specify
+  the path to the groups' data files.
+License: `use_mit_license()`
+Encoding: UTF-8
+Imports: RHRV (>=2.4.6) 
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.0
