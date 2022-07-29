@@ -102,9 +102,10 @@ differentiate = function(y, x, kernel = c("normal","box"), bandwidth = 0.5){
 }
 
 # Run segmented but filtering the warning "No breakpoint estimated"
+#' @importFrom segmented segmented
 do_segmentation = function(data, initialValues) {
   handler = function(w) {
-    if(any(grepl("No breakpoint estimated", w))) {
+    if (any(grepl("No breakpoint estimated", w))) {
       # "muffleWarning" implements a simple recovery strategy: “Suppress the warning”
       invokeRestart("muffleWarning")
     }

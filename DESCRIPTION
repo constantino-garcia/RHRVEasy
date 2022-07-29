@@ -15,6 +15,13 @@ Description: Runs time-based analysis, frequency-based analysis and non-linear a
   the path to the groups' data files.
 License: `use_mit_license()`
 Encoding: UTF-8
-Imports: RHRV (>=2.4.6) 
+Imports: 
+    doParallel,
+    foreach,
+    parallel,
+    PMCMR,
+    RHRV (>= 2.4.6),
+    segmented,
+    writexl
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.0
