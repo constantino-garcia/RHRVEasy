@@ -81,7 +81,7 @@ time_analysis <-
       row_list = c(name_file, results, group)
       as.data.frame(row_list)
     }
-    #@todo  ¿Remove size column???
+    #@todo  ?Remove size column???
     dataFrame
   }
 
@@ -136,7 +136,7 @@ wavelet_analysis <-
       hrv.data$HR[zero_indexes] = hr_median
 
       hrv.data = easy_call(hrv.data, CreateFreqAnalysis, ...)
-      hrv.data = SetVerbose(hrv.data, easy_options)
+      hrv.data = SetVerbose(hrv.data, easy_options$verbose)
       hrv.data = easy_call(hrv.data, CalculatePowerBand, ...)
 
       index = length(hrv.data$FreqAnalysis)
@@ -282,9 +282,9 @@ non_linear_analysis <-
 
       tryCatch({
         #Set to TRUE to display correlation dimension calculation and lyapunov related plots
-        showNonLinerPlots = FALSE
+        showNonLinearPlots = FALSE
 
-        if (showNonLinerPlots) {
+        if (showNonLinearPlots) {
           PlotNIHR(hrv.data, main = paste("NIHR of ", file))
         }
 
@@ -294,7 +294,7 @@ non_linear_analysis <-
           timeLag = kTimeLag,
           maxEmbeddingDim = 15,
           threshold = 0.90,
-          doPlot = showNonLinerPlots
+          doPlot = showNonLinearPlots
         )
         # TODO: unifiy is.na with 0
         if (is.na(kEmbeddingDim)) {
@@ -328,7 +328,7 @@ non_linear_analysis <-
             pointsRadius = 20,
             theilerWindow = 10,
             corrOrder = 2,
-            doPlot = showNonLinerPlots
+            doPlot = showNonLinearPlots
           )
 
           cd = hrv.data$NonLinearAnalysis[[1]]$correlation$computations
@@ -338,7 +338,7 @@ non_linear_analysis <-
           cdScalingRegion =
             estimate_scaling_region(filteredCd,
                                     numberOfLinearRegions = 3,
-                                    doPlot = showNonLinerPlots)
+                                    doPlot = showNonLinearPlots)
           if (!cdScalingRegion$reliable) {
             warning(
               paste(
@@ -358,16 +358,16 @@ non_linear_analysis <-
               cdScalingRegion,
             useEmbeddings =
               (kEmbeddingDim):(kEmbeddingDim + 2),
-            doPlot = showNonLinerPlots
+            doPlot = showNonLinearPlots
           )
 
           hrv.data = CalculateSampleEntropy(hrv.data,
                                             indexNonLinearAnalysis = 1,
-                                            doPlot = showNonLinerPlots)
+                                            doPlot = showNonLinearPlots)
 
           hrv.data = EstimateSampleEntropy(hrv.data,
                                            indexNonLinearAnalysis = 1,
-                                           doPlot = showNonLinerPlots)
+                                           doPlot = showNonLinearPlots)
 
           # Get a reasonable radius for both lyapunov and RQA
           large_correlations = which(colMeans(cd$corr.matrix) > 1e-4)
@@ -382,7 +382,7 @@ non_linear_analysis <-
             timeLag = kTimeLag,
             radius = small_radius,
             theilerWindow = 20,
-            doPlot = showNonLinerPlots
+            doPlot = showNonLinearPlots
           )
           lyapunovScalingRegion =
             estimate_scaling_region(hrv.data$NonLinearAnalysis[[1]]$lyapunov$computations)
@@ -391,9 +391,8 @@ non_linear_analysis <-
             hrv.data,
             indexNonLinearAnalysis = 1,
             regressionRange = lyapunovScalingRegion,
-            useEmbeddings = (kEmbeddingDim):(kEmbeddingDim +
-                                               2),
-            doPlot = showNonLinerPlots
+            useEmbeddings = kEmbeddingDim:(kEmbeddingDim + 2),
+            doPlot = showNonLinearPlots
           )
         }
       },
@@ -1351,15 +1350,15 @@ print.RHRVEasyResult <- function(results) {
     # 1. We have more than 2 groups, we check that by looking at the length of listDF
 
     if(length(listDF)>2){
-      
-      #@TODO creo que deberíamos cambiar la condición para reportar Dunn por
-      #  if(results$pValues[[column]]<signif_level). Si no en alguna ocasión (LF en la siguiente prueba)
+
+      #@TODO creo que deber?amos cambiar la condici?n para reportar Dunn por
+      #  if(results$pValues[[column]]<signif_level). Si no en alguna ocasi?n (LF en la siguiente prueba)
       #reporta Dunn sin haber reportado ANOVA
       #a2b=RHRVEasy(folders =c("C:\\rrs\\RHRVEasy\\rrs\\normal",
       #                        "C:\\rrs\\RHRVEasy\\rrs\\chf",
-      #                        "C:\\rrs\\RHRVEasy\\rrs\\normal_half", 
+      #                        "C:\\rrs\\RHRVEasy\\rrs\\normal_half",
       #                        "C:\\rrs\\RHRVEasy\\rrs\\chf_half"), significance_level = 0.05)
-      
+
       #@TODO Lo mismo en otros sitios
       # 2. ANOVA Test is significative. We check that by comparing it to the signif_level
 
@@ -1488,6 +1487,7 @@ print.RHRVEasyResult <- function(results) {
 }
 
 #' @importFrom writexl write_xlsx
+#' @export
 saveHRVindexes <- function(results, saveHRVindexesInPath = ".") {
   #if called directly by RHRVEasy witout an explicit value for saveHRVindexesInPath
   #then saveHRVindexesInPath is null ans nothing hapens

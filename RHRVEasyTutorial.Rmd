@@ -18,15 +18,16 @@ This tutorial uses the recordings of the [Normal Sinus Rhythm RR Interval Databa
 To ilustrate how to work with more than two experimental groups, half of the recordings from both databases were randomly selected. The NSR_HALF_DB database is made up of 24 recordings randomly chosen from the 58 of the NSR database. The CHF_HALF_DB database is made up of 14 recordings chosen from the 28 of the CHF database. The four databases are available in the [RHRVEasy GitHub repository](https://github.com/sofiabardaji/RHRVEasy). To run this tutorial, the following four variables must contain the folder of the local machine where the files of each of these databases are:
 ```{r}
 #@TODO REPLACE_WITH_LOCAL_PATH
-NSR_DB = "C:\\rrs\\RHRVEasy\\rrs\\normal"
-CHF_DB = "C:\\rrs\\RHRVEasy\\rrs\\chf"
-NSR_HALF_DB = "C:\\rrs\\RHRVEasy\\rrs\\normal_half"
-CHF_HALF_DB = "C:\\rrs\\RHRVEasy\\rrs\\chf_half"
+base_path = "rrs/" # "C:\\rrs\\RHRVEasy\\rrs"
+NSR_DB = file.path(base_path, "normal")
+CHF_DB = file.path(base_path, "chf")
+NSR_HALF_DB = file.path(base_path, "normal_half")
+CHF_HALF_DB = file.path(base_path, "chf_half")
 ```
 
 RHRVEasy permits creating an Excel spreadsheet with all the HRV indices calculated for each recording. The following variable must contain the folder on the local machine where the Excel spreadsheet is to be saved:
 ```{r}
-spreadsheet_path = "C:\\rrs\\RHRVEasy"
+spreadsheet_path = base_path
 ```
 
 # 1. Time and frequency analysis
@@ -36,8 +37,8 @@ RHRVEasy enables the user to carry out a full HRV analysis by just invoking a fu
 The following function call computes the time and frequency indices for the NSR_DB and CHF_DB databases, and and performs a statistical comparison of each index correcting the significance level with the Bonferroni method:
 
 ```{r}
-source("C:\\rrs\\RHRVEasy\\RHRVEasy.r")
-RHRVEasy_obj = RHRVEasy(folders =c(NSR_DB, CHF_DB))
+library("RHRVEasy")
+RHRVEasy_obj = RHRVEasy(folders = c(NSR_DB, CHF_DB))
 ```
 
 When the returned object is displayed in the console, it shows which indices present statistically significant differences:
@@ -62,7 +63,7 @@ The `format` parameter specifies the format in which the RR intervals are stored
 
 By default, the frequency analysis is performed using the Fourier transform. It is also possible to use the Wavelet transform pasing the value `'wavelet'` to the `typeAnalysis` parameter (check the paper "García, C. A., Otero, A., Vila, X., & Márquez, D. G. (2013). A new algorithm for wavelet-based heart rate variability analysis. Biomedical Signal Processing and Control, 8(6), 542-550" for details):
 ```{r}
-RHRVEasy_obj_wavelet = RHRVEasy(folders =c(NSR_DB, CHF_DB),  typeAnalysis = 'wavelet')
+RHRVEasy_obj_wavelet = RHRVEasy(folders =c(NSR_DB, CHF_DB),  typeAnalysis = 'wavelet', n_jobs = 1)
 RHRVEasy_obj_wavelet
 ```
 
@@ -72,7 +73,7 @@ Given that multiple statistical tests are performed on several HRV indices, a co
 
 ```{r}
 RHRVEasy_obj_no_correction = RHRVEasy(folders = c(NSR_DB, CHF_DB), correction = FALSE)
-RHRVEasy_obj_fdr = RHRVEasy(folders = c(NSR_DB, CHF_DB), correctionMethod = 'fdr')
+RHRVEasy_obj_fdr = RHRVEasy(folders = c(NSR_D, CHF_DB), correctionMethod = 'fdr')
 #Let us compare the pvalues obtained with different correction methods 
 head(cbind(RHRVEasy_obj_no_correction$pValues, RHRVEasy_obj_fdr$pValues, RHRVEasy_obj$pValues))
 ```
@@ -131,12 +132,10 @@ The calculation of the nonlinear indices requires considerable computational res
 **Warning**: the following sentence, comented in the tutorial, will take several hours to execute on a medium to high performance PC, and possibly several days on a low performance PC.
 
 ```{r}
-source("C:\\rrs\\RHRVEasy\\RHRVEasy.r")
-source("C:\\rrs\\RHRVEasy\\ScalingRegionEstimation.R")
-#@TODO Borrar Código de depuración con los tiempos de ejecución
-RHRVEasy_obj_nonLinear = RHRVEasy(folders =c(NSR_DB, CHF_DB), nonLinear = TRUE)
-RHRVEasy_obj_nonLinear
-head(RHRVEasy_obj_nonLinear$NonLinearAnalysis)
-#Let us save the indices
-saveHRVindexes (RHRVEasy_obj_nonLinear, saveHRVindexesInPath = spreadsheet_path)
+# #@TODO Borrar Código de depuración con los tiempos de ejecución
+# RHRVEasy_obj_nonLinear = RHRVEasy(folders =c(NSR_DB, CHF_DB), nonLinear = TRUE)
+# RHRVEasy_obj_nonLinear
+# head(RHRVEasy_obj_nonLinear$NonLinearAnalysis)
+# #Let us save the indices
+# saveHRVindexes (RHRVEasy_obj_nonLinear, saveHRVindexesInPath = spreadsheet_path)
 ```

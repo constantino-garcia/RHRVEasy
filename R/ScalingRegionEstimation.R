@@ -45,8 +45,7 @@ nltsFilter.maxLyapunov = function(x, kernel = "normal", bandwidth = 2) {
 }
 
 # Estimate local slopes using kernels -----------------------------------------
-estimate_local_slopes = function(y, x, bandwidth,
-                                 kernel, doPlot = TRUE) {
+estimate_local_slopes = function(y, x, bandwidth, kernel, doPlot = FALSE) {
 
   check_segment_arguments(y, x)
   # ksmooth requires x to be in increasing order
@@ -121,7 +120,7 @@ do_segmentation = function(data, initialValues) {
 #  estimate the scaling regions  --------------------------------------
 
 segment_and_select_by_slope = function(y, x, initialValues, criterion = c("max", "min"),
-                                   doPlot = TRUE) {
+                                   doPlot = FALSE) {
   criterion = match.arg(criterion)
   data = data.frame(y = y, x = x)
 
@@ -176,7 +175,7 @@ estimate_all_scaling_regions = function(y, x, numberOfLinearRegions, initialValu
   scalingRegion = t(apply(y, MARGIN = 1, FUN = segment_and_select_by_slope,
                           x = x, initialValues = initialValues,
                           criterion = criterion,
-                          doPlot = TRUE))
+                          doPlot = FALSE))
   colnames(scalingRegion) = c("scalingRegionStart","scalingRegionEnd")
   scalingRegion
 }
@@ -198,7 +197,7 @@ estimate_scaling_region = function(y, numberOfLinearRegions,
 # If they are not specified, the method selects them automatically.
 # It must be noted that 'length(initialValues) + 1 = numberOfLinearRegions'.
 estimate_scaling_region.corrDim = function(x, numberOfLinearRegions = 4,
-                                           initialValues = NULL, doPlot = TRUE,
+                                           initialValues = NULL, doPlot = FALSE,
                                            bandwidth = NULL,
                                            kernel = c("normal", "box")) {
   TRUST_THRESHOLD = 0.5
@@ -219,7 +218,7 @@ estimate_scaling_region.corrDim = function(x, numberOfLinearRegions = 4,
     estimate_local_slopes(y = log10(cd$corr.matrix),
                         x = (cd$corr.order - 1) * log10(cd$radius),
                         bandwidth = bandwidth, kernel = kernel,
-                        doPlot = TRUE)
+                        doPlot = FALSE)
   scalingRegionMatrix = estimate_all_scaling_regions(localSlopes$y, localSlopes$x,
                                                      numberOfLinearRegions, initialValues,
                                                      criterion = "min")
@@ -262,7 +261,7 @@ estimate_scaling_region.corrDim = function(x, numberOfLinearRegions = 4,
 # If they are not specified, the method selects them automatically.
 # It must be noted that 'length(initialValues) + 1 = numberOfLinearRegion'.
 estimate_scaling_region.maxLyapunov = function(x, numberOfLinearRegions = 2,
-                                               initialValues = NULL, doPlot = TRUE) {
+                                               initialValues = NULL, doPlot = FALSE) {
   # find scaling regions per embedding dimension
   scalingRegionMatrix = estimate_all_scaling_regions(x$s.function[, -1], x$time[-1],
                                       numberOfLinearRegions, initialValues,

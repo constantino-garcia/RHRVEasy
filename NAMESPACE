@@ -2,6 +2,7 @@
 
 S3method(print,RHRVEasyResult)
 export(RHRVEasy)
+export(saveHRVindexes)
 importFrom(PMCMR,posthoc.kruskal.dunn.test)
 importFrom(RHRV,BuildNIHR)
 importFrom(RHRV,CalculateCorrDim)
