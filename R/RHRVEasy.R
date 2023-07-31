@@ -60,16 +60,17 @@ easy_call <- function(hrv.data, mf, ...) {
 # Creating time analysis data frames
 #' @importFrom RHRV CreateTimeAnalysis
 #' @importFrom foreach foreach
-#' @importFrom foreach %dopar%
+#' @importFrom foreach %dopar% %do%
 time_analysis <-
   function(format, files, class, rrs2, easy_options, ...) {
     dataFrame = foreach(
       file = files,
       .combine = rbind.data.frame,
       .export = c("preparing_analysis", "easy_call"),
-      .packages = "RHRV",
+      # .packages = "RHRV",
       .errorhandling = "pass"
     ) %dopar% {
+      suppressMessages(library("RHRV", character.only = TRUE))
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format,
                                     easy_options = easy_options)
       hrv.data = easy_call(hrv.data, CreateTimeAnalysis, ...)
@@ -93,8 +94,10 @@ freq_analysis <-
       file = files,
       .combine = rbind.data.frame,
       .export = c("preparing_analysis", "easy_call"),
-      .packages = "RHRV"
+      # .packages = "RHRV",
+      .errorhandling = "pass"
     ) %dopar% {
+      suppressMessages(library("RHRV", character.only = TRUE))
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format,
                                     easy_options = easy_options)
       hrv.data = easy_call(hrv.data, InterpolateNIHR, ...)
@@ -122,8 +125,10 @@ wavelet_analysis <-
       file = files,
       .combine = rbind.data.frame,
       .export = c("preparing_analysis", "easy_call"),
-      .packages = "RHRV"
+      # .packages = "RHRV",
+      .errorhandling = "pass"
     ) %dopar% {
+      suppressMessages(library("RHRV", character.only = TRUE))
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
       hrv.data = easy_call(hrv.data, InterpolateNIHR, ...)
       zero_indexes = which(hrv.data$HR == 0)
@@ -253,13 +258,18 @@ extractRqaStatistics <- function(rqa) {
 #' @importFrom RHRV CalculateMaxLyapunov EstimateMaxLyapunov
 #' @importFrom RHRV RQA PoincarePlot
 non_linear_analysis <-
-  function(format, files, class, rrs2, easy_options, ...) {
+  function(format, files, class, rrs2, easy_options, doRQA, ...) {
+    # Compute all nonlinear statistics but RQA in parallel using %dopar%.
+    # RQA is avoided due to its high memory consumption
     dataFrame = foreach(
       file = files,
       .combine = rbind.data.frame,
-      .export = c("preparing_analysis", "easy_call", "attempToCalculateTimeLag"),
-      .packages = "RHRV"
+      .export = c("preparing_analysis", "easy_call", "attempToCalculateTimeLag",
+                  "nltsFilter"),
+      # .packages = "RHRV",
+      .errorhandling = "pass"
     ) %dopar% {
+      suppressMessages(library("RHRV", character.only = TRUE))
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
       hrv.data = CreateNonLinearAnalysis(hrv.data)
       kTimeLag = attempToCalculateTimeLag(hrv.data, easy_options = easy_options)
@@ -363,16 +373,6 @@ non_linear_analysis <-
           large_correlations = which(colMeans(cd$corr.matrix) > 1e-4)
           small_radius = min(cd$radius[large_correlations])
 
-          # Don't plot RQA: too slow
-          hrv.data = RQA(
-            hrv.data,
-            indexNonLinearAnalysis = 1,
-            embeddingDim = kEmbeddingDim,
-            timeLag = kTimeLag,
-            radius = small_radius,
-            doPlot = FALSE
-          )
-
           hrv.data = CalculateMaxLyapunov(
             hrv.data,
             indexNonLinearAnalysis = 1,
@@ -419,7 +419,6 @@ non_linear_analysis <-
       )
       resultsML = list("MaxLyapunov" = mean(hrv.data$NonLinearAnalysis[[1]]$lyapunov$statistic, na.rm = TRUE))
 
-      resultsRQA = extractRqaStatistics(hrv.data$NonLinearAnalysis[[1]]$rqa)
 
       resultsPP = list(
         "PoincareSD1" = hrv.data$NonLinearAnalysis[[1]]$PoincarePlot$SD1,
@@ -427,37 +426,20 @@ non_linear_analysis <-
       )
       resultsTimeDim = list("EmbeddingDim" = kEmbeddingDim, "TimeLag" = kTimeLag)
 
-
       #as.data.frame considers that if the value of a list is NULL it does not exist.
       #It must contain NA
-      if (easy_options$verbose) {
-        message(c("\nresultsCS ", resultsCS["CorrelationStatistic"]))
-      }
       if (is.null(resultsCS["CorrelationStatistic"])) {
         resultsCS["CorrelationStatistic"] = NA
-      }
-      if (easy_options$verbose) {
-        message(c("resultsSE ", resultsSE["SampleEntropy"]))
       }
       if (is.null(resultsSE["SampleEntropy"])) {
         resultsSE["SampleEntropy"] = NA
       }
       if (easy_options$verbose) {
-        message(c("resultsML ", resultsML["MaxLyapunov"]))
+        message(c("\nresultsCS ", resultsCS["CorrelationStatistic"]))
       }
       if (is.null(resultsML["MaxLyapunov"])) {
         resultsML["MaxLyapunov"] = NA
       }
-      if (easy_options$verbose) {
-        message("results of RQA: ")
-        print(resultsRQA)
-      }
-      if (easy_options$verbose) {
-        message(c("results of Poincare "))
-        print(resultsPP)
-      }
-
-
       name_file = list("filename" = file)
       group = list("group" = class)
       row_list = c(
@@ -465,16 +447,54 @@ non_linear_analysis <-
         resultsCS,
         resultsSE,
         resultsML,
-        resultsRQA,
         resultsPP,
         resultsTimeDim,
-        group
+        group,
+        list("kEmbeddingDim" = kEmbeddingDim),
+        list("kTimeLag" = kTimeLag),
+        list("small_radius" = small_radius)
       )
       as.data.frame(row_list)
-    }
-    dataFrame
+    } # end of %dopar%
 
+  if (doRQA) {
+    # Now compute sequentially the RQA results using %do%. As mentioned before,
+    # RQA is not computed in parallel due to its high memory consumption
+    finalDataframe = foreach(file = files, .combine = rbind.data.frame) %do% {
+      hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
+      hrv.data = CreateNonLinearAnalysis(hrv.data)
+      idx = which(dataFrame$filename == file)
+      stopifnot(length(idx) == 1)
+      hrv.data = RQA(
+        hrv.data,
+        indexNonLinearAnalysis = 1,
+        embeddingDim = dataFrame$kEmbeddingDim[[idx]],
+        timeLag = dataFrame$kTimeLag[[idx]],
+        radius = dataFrame$small_radius[[idx]],
+        doPlot = FALSE
+      )
+      resultsRQA = extractRqaStatistics(hrv.data$NonLinearAnalysis[[1]]$rqa)
+      resultsRQA = as.data.frame(resultsRQA)
+      # copy group to place it after RQA results
+      resultsRQA$group = dataFrame$group[[idx]]
+      # Remove those columns that were only need to carry RQA computation and group
+      keepCols = setdiff(colnames(dataFrame), c("kTimeLag", "kEmbeddingDim", "small_radius", "group"))
+      updatedResults = cbind(
+        dataFrame[idx, keepCols],
+        resultsRQA
+      )
+      if (easy_options$verbose) {
+        message(paste0(capture.output(updatedResults), collapse = "\n"))
+      }
+      updatedResults
+    }
+  } else {
+    # Remove those columns that were only need to carry RQA computation and group
+    keepCols = setdiff(colnames(dataFrame), c("kTimeLag", "kEmbeddingDim", "small_radius"))
+    finalDataframe = dataFrame[, keepCols]
   }
+  finalDataframe
+}
 
 
 # Dunn Statistical tests for non-linear statistics
@@ -1201,7 +1221,7 @@ print.RHRVEasyResult <- function(results) {
         )
 
         for (i in 1:length(listDF)) {
-          group = levels(results$TimeAnalysis$group)[i]
+          group = names(listDF)[i]
           cat(
             column,
             " for the group",
@@ -1229,7 +1249,7 @@ print.RHRVEasyResult <- function(results) {
         )
 
         for (i in 1:length(listDF)) {
-          group = levels(results$TimeAnalysis$group)[i]
+          group = names(listDF)[i]
           cat(
             column,
             " for the group ",
@@ -1284,7 +1304,7 @@ print.RHRVEasyResult <- function(results) {
         )
 
         for (i in 1:length(listDF)) {
-          group = levels(results$TimeAnalysis$group)[i]
+          group = names(listDF)[i]
           cat(
             column,
             " for the group",
@@ -1311,7 +1331,7 @@ print.RHRVEasyResult <- function(results) {
         )
 
         for (i in 1:length(listDF)) {
-          group = levels(results$TimeAnalysis$group)[i]
+          group = names(listDF)[i]
           cat(
             column,
             " for the group ",
@@ -1396,7 +1416,7 @@ print.RHRVEasyResult <- function(results) {
           )
 
           for (i in 1:length(listDF)) {
-            group = levels(results$TimeAnalysis$group)[i]
+            group = names(listDF)[i]
             cat(
               column,
               " for the group",
@@ -1423,7 +1443,7 @@ print.RHRVEasyResult <- function(results) {
           )
 
           for (i in 1:length(listDF)) {
-            group = levels(results$TimeAnalysis$group)[i]
+            group = names(listDF)[i]
             cat(
               column,
               " for the group ",
@@ -1509,7 +1529,7 @@ saveHRVindexes <- function(results, saveHRVindexesInPath = ".") {
     n_jobs <- n_cores
   }
   if (n_jobs > 1) {
-    cl <- parallel::makeCluster(n_jobs) # using outfile = "" may be useful for debugging
+    cl <- parallel::makeCluster(n_jobs, outfile="") # using outfile = "" may be useful for debugging
     doParallel::registerDoParallel(cl)
     if (verbose) {
       message(paste("Registering cluster with", n_jobs, "nodes"))
@@ -1540,6 +1560,7 @@ RHRVEasy <-
            typeAnalysis = 'fourier',
            significance_level = 0.25,
            nonLinear = FALSE,
+           doRQA = FALSE,   # ignored if nonLinear = FALSE
            saveHRVindexesInPath = NULL,
            n_jobs = 1,
            ...) {
@@ -1583,6 +1604,7 @@ RHRVEasy <-
             split_path(folder)[1],
             folder,
             easy_options,
+            doRQA,
             ...
           )
         )
