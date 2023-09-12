@@ -370,8 +370,15 @@ non_linear_analysis <-
                                            doPlot = showNonLinearPlots)
 
           # Get a reasonable radius for both lyapunov and RQA
-          large_correlations = which(colMeans(cd$corr.matrix) > 1e-4)
-          small_radius = min(cd$radius[large_correlations])
+          average_correlations = colMeans(cd$corr.matrix)
+          small_correlations = which((average_correlations >= 1e-4) & (average_correlations <= 1e-3))
+          if (length(small_correlations) == 0) {
+            warning(paste("Could not find a small radius for neighbor search in file", file))
+            small_radius = min(cd$radius)
+          } else {
+            small_radius = min(cd$radius[small_correlations])
+          }
+          print(paste(file, " small radius:", small_radius))
 
           hrv.data = CalculateMaxLyapunov(
             hrv.data,
@@ -464,6 +471,7 @@ non_linear_analysis <-
       hrv.data = CreateNonLinearAnalysis(hrv.data)
       idx = which(dataFrame$filename == file)
       stopifnot(length(idx) == 1)
+      print(paste("Doing RQA for ", file))
       hrv.data = RQA(
         hrv.data,
         indexNonLinearAnalysis = 1,

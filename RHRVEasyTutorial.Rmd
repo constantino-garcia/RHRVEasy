@@ -73,7 +73,7 @@ Given that multiple statistical tests are performed on several HRV indices, a co
 
 ```{r}
 RHRVEasy_obj_no_correction = RHRVEasy(folders = c(NSR_DB, CHF_DB), correction = FALSE)
-RHRVEasy_obj_fdr = RHRVEasy(folders = c(NSR_D, CHF_DB), correctionMethod = 'fdr')
+RHRVEasy_obj_fdr = RHRVEasy(folders = c(NSR_DB, CHF_DB), correctionMethod = 'fdr')
 #Let us compare the pvalues obtained with different correction methods 
 head(cbind(RHRVEasy_obj_no_correction$pValues, RHRVEasy_obj_fdr$pValues, RHRVEasy_obj$pValues))
 ```
