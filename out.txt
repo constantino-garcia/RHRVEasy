@@ -1,0 +1,209 @@
+ℹ Loading RHRVEasy
+Registered S3 method overwritten by 'quantmod':
+  method            from
+  as.zoo.data.frame zoo 
+
+Attaching package: ‘nonlinearTseries’
+
+The following object is masked from ‘package:grDevices’:
+
+    contourLines
+
+Loading required package: MASS
+Loading required package: nlme
+
+The path  /data/easy/chf/  exists and there are files in it
+
+Loading recording chf201_rr_secs.txt
+Loading recording chf202_rr_secs.txt
+Loading recording chf203_rr_secs.txt
+Loading recording chf204_rr_secs.txt
+Loading recording chf205_rr_secs.txt
+Loading recording chf206_rr_secs.txt
+Loading recording chf208_rr_secs.txt
+Loading recording chf209_rr_secs.txt
+Loading recording chf210_rr_secs.txt
+Loading recording chf211_rr_secs.txt
+Loading recording chf213_rr_secs.txt
+Loading recording chf214_rr_secs.txt
+Loading recording chf215_rr_secs.txt
+Loading recording chf217_rr_secs.txt
+Loading recording chf218_rr_secs.txt
+Loading recording chf219_rr_secs.txt
+Loading recording chf220_rr_secs.txt
+Loading recording chf221_rr_secs.txt
+Loading recording chf222_rr_secs.txt
+Loading recording chf223_rr_secs.txt
+Loading recording chf224_rr_secs.txt
+Loading recording chf225_rr_secs.txt
+Loading recording chf226_rr_secs.txt
+Loading recording chf227_rr_secs.txt
+Loading recording chf228_rr_secs.txt
+Performing non linear analysis...
+Loading recording chf201_rr_secs.txt
+Time Lag for takens reconstruction: 2
+[1] "chf201_rr_secs.txt  small radius: 10"
+
+resultsCS 4.79384726244314
+Loading recording chf202_rr_secs.txt
+Time Lag for takens reconstruction: 8
+[1] "chf202_rr_secs.txt  small radius: 10"
+
+resultsCS 7.34400716376204
+Loading recording chf203_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf203_rr_secs.txt  small radius: 10"
+
+resultsCS 1.29880779782922
+Loading recording chf204_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf204_rr_secs.txt  small radius: 10"
+
+resultsCS 4.28164499404286
+Loading recording chf205_rr_secs.txt
+Time Lag for takens reconstruction: 2
+[1] "chf205_rr_secs.txt  small radius: 10"
+
+resultsCS 1.42741333873978
+Loading recording chf206_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf206_rr_secs.txt  small radius: 10"
+
+resultsCS 1.0158876472737
+Loading recording chf208_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf208_rr_secs.txt  small radius: 10"
+
+resultsCS 1.78288530436638
+Loading recording chf209_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf209_rr_secs.txt  small radius: 10"
+
+resultsCS 0.695451190122413
+Loading recording chf210_rr_secs.txt
+Time Lag for takens reconstruction: 3
+[1] "chf210_rr_secs.txt  small radius: 10"
+
+resultsCS 1.18331408316541
+Loading recording chf211_rr_secs.txt
+Time Lag for takens reconstruction: 3
+[1] "chf211_rr_secs.txt  small radius: 10"
+
+resultsCS 5.50430171368488
+Loading recording chf213_rr_secs.txt
+Time Lag for takens reconstruction: 2
+[1] "chf213_rr_secs.txt  small radius: 10"
+
+resultsCS 5.2852384693889
+Loading recording chf214_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf214_rr_secs.txt  small radius: 10"
+
+resultsCS 1.9192392175134
+Loading recording chf215_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf215_rr_secs.txt  small radius: 10"
+
+resultsCS 1.06885120546663
+Loading recording chf217_rr_secs.txt
+Time Lag for takens reconstruction: 2
+[1] "chf217_rr_secs.txt  small radius: 10"
+
+resultsCS 3.24815467154719
+Loading recording chf218_rr_secs.txt
+Time Lag for takens reconstruction: 23
+[1] "chf218_rr_secs.txt  small radius: 10"
+
+resultsCS 2.85766845035251
+Loading recording chf219_rr_secs.txt
+Time Lag for takens reconstruction: 22
+[1] "chf219_rr_secs.txt  small radius: 10"
+There has been a problem calculating some non linear statistic.
+error calling combine function:
+<simpleError in fun(accum, result.16): invalid list argument: all variables should have the same length>
+Loading recording chf220_rr_secs.txt
+Time Lag for takens reconstruction: 7
+[1] "chf220_rr_secs.txt  small radius: 10"
+
+resultsCS 2.95816478279745
+Loading recording chf221_rr_secs.txt
+Time Lag for takens reconstruction: 25
+[1] "chf221_rr_secs.txt  small radius: 12.8932880355815"
+There has been a problem calculating some non linear statistic.
+error calling combine function:
+<simpleError in fun(accum, result.18): invalid list argument: all variables should have the same length>
+Loading recording chf222_rr_secs.txt
+Time Lag for takens reconstruction: 9
+[1] "chf222_rr_secs.txt  small radius: 10"
+
+resultsCS 4.97888801876226
+Loading recording chf223_rr_secs.txt
+Time Lag for takens reconstruction: 18
+[1] "chf223_rr_secs.txt  small radius: 10"
+
+resultsCS 4.25854577433815
+Loading recording chf224_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf224_rr_secs.txt  small radius: 10"
+
+resultsCS 1.42867926090037
+Loading recording chf225_rr_secs.txt
+Time Lag for takens reconstruction: 3
+[1] "chf225_rr_secs.txt  small radius: 10"
+
+resultsCS 1.96759697614256
+Loading recording chf226_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf226_rr_secs.txt  small radius: 10"
+
+resultsCS 1.04258797841648
+Loading recording chf227_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf227_rr_secs.txt  small radius: 10"
+
+resultsCS 1.47733008451666
+Loading recording chf228_rr_secs.txt
+Time Lag for takens reconstruction: 1
+[1] "chf228_rr_secs.txt  small radius: 10"
+
+resultsCS 1.63333481046571
+Loading recording chf201_rr_secs.txt
+[1] "Doing RQA for  chf201_rr_secs.txt"
+            filename CorrelationStatistic SampleEntropy MaxLyapunov PoincareSD1
+1 chf201_rr_secs.txt             4.793847     0.5011435  0.05072375    14.29114
+  PoincareSD2 EmbeddingDim TimeLag         REC    RATIO       DET        DIV
+1    105.8199            5       2 0.001186711 105.2795 0.1249364 0.02173913
+  Lmax    Lmean LmeanWithoutMain     ENTR         TREND       LAM Vmax    Vmean
+1   46 3.477691         3.268443 1.553193 -8.217545e-09 0.2316055   35 2.373641
+  group
+1   chf
+Loading recording chf202_rr_secs.txt
+[1] "Doing RQA for  chf202_rr_secs.txt"
+            filename CorrelationStatistic SampleEntropy MaxLyapunov PoincareSD1
+2 chf202_rr_secs.txt             7.344007     0.4170729 0.007409004    24.55049
+  PoincareSD2 EmbeddingDim TimeLag          REC    RATIO       DET        DIV
+2    122.7753            9       8 3.165624e-05 10924.32 0.3458229 0.03333333
+  Lmax    Lmean LmeanWithoutMain      ENTR         TREND        LAM Vmax
+2   30 14.94245         2.396309 0.7931825 -5.523109e-10 0.09365024   36
+     Vmean group
+2 2.666388   chf
+Loading recording chf203_rr_secs.txt
+[1] "Doing RQA for  chf203_rr_secs.txt"
+            filename CorrelationStatistic SampleEntropy MaxLyapunov PoincareSD1
+3 chf203_rr_secs.txt             1.298808     0.1197097  0.07938797    12.21247
+  PoincareSD2 EmbeddingDim TimeLag        REC    RATIO      DET   DIV Lmax
+3    53.45325            5       1 0.03243743 28.56561 0.926595 0.008  125
+     Lmean LmeanWithoutMain     ENTR         TREND       LAM Vmax   Vmean group
+3 4.944492         4.942823 2.228807 -6.712787e-08 0.6567263   91 3.91718   chf
+Loading recording chf204_rr_secs.txt
+[1] "Doing RQA for  chf204_rr_secs.txt"
+            filename CorrelationStatistic SampleEntropy MaxLyapunov PoincareSD1
+4 chf204_rr_secs.txt             4.281645     0.3218832  0.06155743    23.35276
+  PoincareSD2 EmbeddingDim TimeLag         REC    RATIO       DET        DIV
+4    74.38906            5       1 0.004706358 161.9099 0.7620061 0.02777778
+  Lmax    Lmean LmeanWithoutMain     ENTR         TREND       LAM Vmax    Vmean
+4   36 3.175074         3.165915 1.492703 -5.096999e-09 0.3568912   58 2.880188
+  group
+4   chf
+Loading recording chf205_rr_secs.txt
+[1] "Doing RQA for  chf205_rr_secs.txt"

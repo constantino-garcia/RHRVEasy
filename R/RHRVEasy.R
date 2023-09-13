@@ -269,6 +269,9 @@ non_linear_analysis <-
       # .packages = "RHRV",
       .errorhandling = "pass"
     ) %dopar% {
+
+      kTheilerWindow = 10
+
       suppressMessages(library("RHRV", character.only = TRUE))
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
       hrv.data = CreateNonLinearAnalysis(hrv.data)
@@ -326,7 +329,7 @@ non_linear_analysis <-
             minRadius = 10,
             maxRadius = 50,
             pointsRadius = 20,
-            theilerWindow = 10,
+            theilerWindow = kTheilerWindow,
             corrOrder = 2,
             doPlot = showNonLinearPlots
           )
@@ -371,21 +374,30 @@ non_linear_analysis <-
 
           # Get a reasonable radius for both lyapunov and RQA
           average_correlations = colMeans(cd$corr.matrix)
-          small_correlations = which((average_correlations >= 1e-4) & (average_correlations <= 1e-3))
-          if (length(small_correlations) == 0) {
+          interpolated_fun = approxfun(cd$radius, average_correlations - 1e-3)
+          small_correlation_position = tryCatch(
+            uniroot(
+              interpolated_fun, interval = range(cd$radius[small_correlations])
+            ),
+            error = function(e) e
+          )
+          if (inherits(small_correlation_position, "error")) {
             warning(paste("Could not find a small radius for neighbor search in file", file))
             small_radius = min(cd$radius)
           } else {
-            small_radius = min(cd$radius[small_correlations])
+            small_radius = small_correlation_position$root
           }
           print(paste(file, " small radius:", small_radius))
+          n_takens = length(hrv.data$Beat$RR) - (kEmbeddingDim - 1) * kTimeLag
+          estimated_rqa_entries = 1e-3 * n_takens * (n_takens - kTheilerWindow)
+          estimated_rqa_size = estimated_rqa_entries * 4 # 4 Bytes per entry in SparseMatrix
+
 
           hrv.data = CalculateMaxLyapunov(
             hrv.data,
             indexNonLinearAnalysis = 1,
             minEmbeddingDim = kEmbeddingDim,
-            maxEmbeddingDim = kEmbeddingDim +
-              2,
+            maxEmbeddingDim = kEmbeddingDim + 2,
             timeLag = kTimeLag,
             radius = small_radius,
             theilerWindow = 20,
