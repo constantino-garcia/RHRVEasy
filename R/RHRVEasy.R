@@ -377,7 +377,7 @@ non_linear_analysis <-
           interpolated_fun = approxfun(cd$radius, average_correlations - 1e-3)
           small_correlation_position = tryCatch(
             uniroot(
-              interpolated_fun, interval = range(cd$radius[small_correlations])
+              interpolated_fun, interval = range(cd$radius)
             ),
             error = function(e) e
           )
