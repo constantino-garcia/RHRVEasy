@@ -161,8 +161,8 @@ wavelet_analysis <-
 #' @importFrom RHRV CalculateTimeLag
 attempToCalculateTimeLag <- function(hrv.data, easy_options) {
   lag = 30
-  kTimeLag = tryCatch({
-    kTimeLag <-
+  timeLag = tryCatch({
+    timeLag <-
       CalculateTimeLag(
         hrv.data,
         technique = "acf",
@@ -170,11 +170,11 @@ attempToCalculateTimeLag <- function(hrv.data, easy_options) {
         lagMax = lag,
         doPlot = FALSE
       )
-    kTimeLag
+    timeLag
   },
   error = function(cond) {
     tryCatch({
-      kTimeLag <-
+      timeLag <-
         CalculateTimeLag(
           hrv.data,
           technique = "acf",
@@ -182,11 +182,11 @@ attempToCalculateTimeLag <- function(hrv.data, easy_options) {
           lagMax = lag,
           doPlot = FALSE
         )
-      kTimeLag
+      timeLag
     },
     error = function(cond) {
       tryCatch({
-        kTimeLag <-
+        timeLag <-
           CalculateTimeLag(
             hrv.data,
             technique = "ami",
@@ -194,11 +194,11 @@ attempToCalculateTimeLag <- function(hrv.data, easy_options) {
             lagMax = lag,
             doPlot = FALSE
           )
-        kTimeLag
+        timeLag
       },
       error = function(cond) {
         tryCatch({
-          kTimeLag <-
+          timeLag <-
             CalculateTimeLag(
               hrv.data,
               technique = "ami",
@@ -206,7 +206,7 @@ attempToCalculateTimeLag <- function(hrv.data, easy_options) {
               lagMax = lag,
               doPlot = FALSE
             )
-          kTimeLag
+          timeLag
         },
         error = function(cond) {
           if (easy_options$verbose) {
@@ -218,9 +218,9 @@ attempToCalculateTimeLag <- function(hrv.data, easy_options) {
     })
   })
   if (easy_options$verbose) {
-    message(c("Time Lag for takens reconstruction: ", kTimeLag))
+    message(c("Time Lag for takens reconstruction: ", timeLag))
   }
-  kTimeLag
+  timeLag
 }
 
 extractRqaStatistics <- function(rqa) {
@@ -250,6 +250,9 @@ extractRqaStatistics <- function(rqa) {
 }
 
 
+# Select the range for the computation of nonlinear statistics
+selectMaxEmbeddingDim <- function(embeddingDim) {embeddingDim + 2}
+
 #' @importFrom foreach foreach
 #' @importFrom RHRV CreateNonLinearAnalysis CalculateEmbeddingDim
 #' @importFrom RHRV PlotNIHR NonLinearNoiseReduction
@@ -257,6 +260,7 @@ extractRqaStatistics <- function(rqa) {
 #' @importFrom RHRV CalculateSampleEntropy EstimateSampleEntropy
 #' @importFrom RHRV CalculateMaxLyapunov EstimateMaxLyapunov
 #' @importFrom RHRV RQA PoincarePlot
+#' @importFrom nonlinearTseries rqa
 non_linear_analysis <-
   function(format, files, class, rrs2, easy_options, doRQA, ...) {
     # Compute all nonlinear statistics but RQA in parallel using %dopar%.
@@ -270,18 +274,22 @@ non_linear_analysis <-
       .errorhandling = "pass"
     ) %dopar% {
 
+      ### A couple of values that are held constant for all nonlinear analyses
+      # Set the value of the Theiler window for avoiding temporal correlations
       kTheilerWindow = 10
+      # Correlation value used to get a reasonable radious for both RQA and Lyapunov
+      kRefCorrelation = 1e-3
+      ###
 
       suppressMessages(library("RHRV", character.only = TRUE))
-      hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
+      hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format,
+                                    easy_options = easy_options)
       hrv.data = CreateNonLinearAnalysis(hrv.data)
-      kTimeLag = attempToCalculateTimeLag(hrv.data, easy_options = easy_options)
+      timeLag = attempToCalculateTimeLag(hrv.data, easy_options = easy_options)
 
       #Poincare does not depend on the calculation of time lag or correlation dimension
       #unlike the rest of the nonlinear statistics, its calculation should never fail
-      hrv.data = PoincarePlot(hrv.data,
-                              indexNonLinearAnalysis = 1,
-                              timeLag = 1)
+      hrv.data = PoincarePlot(hrv.data, indexNonLinearAnalysis = 1, timeLag = 1)
 
       tryCatch({
         #Set to TRUE to display correlation dimension calculation and lyapunov related plots
@@ -291,29 +299,30 @@ non_linear_analysis <-
           PlotNIHR(hrv.data, main = paste("NIHR of ", file))
         }
 
-        kEmbeddingDim = CalculateEmbeddingDim(
+        embeddingDim = CalculateEmbeddingDim(
           hrv.data,
           numberPoints = 10000,
-          timeLag = kTimeLag,
+          timeLag = timeLag,
           maxEmbeddingDim = 15,
           threshold = 0.90,
           doPlot = showNonLinearPlots
         )
         # TODO: unifiy is.na with 0
-        if (is.na(kEmbeddingDim)) {
-          kEmbeddingDim = 15
+        if (is.na(embeddingDim)) {
+          embeddingDim = 15
           warning(paste(
             "Proper embedding dim not found for file",
             file,
             "Setting to 15."
           ))
         }
+        maxEmbeddingDim = selectMaxEmbeddingDim(embeddingDim)
 
         hrv.data = NonLinearNoiseReduction(HRVData = hrv.data,
-                                           embeddingDim = kEmbeddingDim,
+                                           embeddingDim = embeddingDim,
                                            radius = NULL)
 
-        if (kEmbeddingDim == 0) {
+        if (embeddingDim == 0) {
           hrv.data$NonLinearAnalysis[[1]]$correlation$statistic = NA
           hrv.data$NonLinearAnalysis[[1]]$sampleEntropy$statistic = NA
           hrv.data$NonLinearAnalysis[[1]]$lyapunov$statistic = NA
@@ -322,10 +331,9 @@ non_linear_analysis <-
           hrv.data = CalculateCorrDim(
             hrv.data,
             indexNonLinearAnalysis = 1,
-            minEmbeddingDim =
-              kEmbeddingDim,
-            maxEmbeddingDim = kEmbeddingDim + 2,
-            timeLag = kTimeLag,
+            minEmbeddingDim = embeddingDim,
+            maxEmbeddingDim = maxEmbeddingDim,
+            timeLag = timeLag,
             minRadius = 10,
             maxRadius = 50,
             pointsRadius = 20,
@@ -357,10 +365,8 @@ non_linear_analysis <-
           hrv.data = EstimateCorrDim(
             hrv.data,
             indexNonLinearAnalysis = 1,
-            regressionRange =
-              cdScalingRegion,
-            useEmbeddings =
-              (kEmbeddingDim):(kEmbeddingDim + 2),
+            regressionRange = cdScalingRegion,
+            useEmbeddings = embeddingDim:maxEmbeddingDim,
             doPlot = showNonLinearPlots
           )
 
@@ -372,34 +378,29 @@ non_linear_analysis <-
                                            indexNonLinearAnalysis = 1,
                                            doPlot = showNonLinearPlots)
 
-          # Get a reasonable radius for both lyapunov and RQA
-          average_correlations = colMeans(cd$corr.matrix)
-          interpolated_fun = approxfun(cd$radius, average_correlations - 1e-3)
-          small_correlation_position = tryCatch(
+          # Get a reasonable radius for both Lyapunov and RQA
+          correlations = cd$corr.matrix[cd$embedding.dims == maxEmbeddingDim,]
+          interpolatedFun = approxfun(cd$radius, correlations - kRefCorrelation)
+          smallCorrRadius = tryCatch(
             uniroot(
-              interpolated_fun, interval = range(cd$radius)
+              interpolatedFun, interval = range(cd$radius)
             ),
             error = function(e) e
           )
-          if (inherits(small_correlation_position, "error")) {
+          if (inherits(smallCorrRadius, "error")) {
             warning(paste("Could not find a small radius for neighbor search in file", file))
-            small_radius = min(cd$radius)
+            smallCorrRadius = min(cd$radius)
           } else {
-            small_radius = small_correlation_position$root
+            smallCorrRadius = smallCorrRadius$root
           }
-          print(paste(file, " small radius:", small_radius))
-          n_takens = length(hrv.data$Beat$RR) - (kEmbeddingDim - 1) * kTimeLag
-          estimated_rqa_entries = 1e-3 * n_takens * (n_takens - kTheilerWindow)
-          estimated_rqa_size = estimated_rqa_entries * 4 # 4 Bytes per entry in SparseMatrix
-
 
           hrv.data = CalculateMaxLyapunov(
             hrv.data,
             indexNonLinearAnalysis = 1,
-            minEmbeddingDim = kEmbeddingDim,
-            maxEmbeddingDim = kEmbeddingDim + 2,
-            timeLag = kTimeLag,
-            radius = small_radius,
+            minEmbeddingDim = embeddingDim,
+            maxEmbeddingDim = maxEmbeddingDim,
+            timeLag = timeLag,
+            radius = smallCorrRadius,
             theilerWindow = 20,
             doPlot = showNonLinearPlots
           )
@@ -410,7 +411,7 @@ non_linear_analysis <-
             hrv.data,
             indexNonLinearAnalysis = 1,
             regressionRange = lyapunovScalingRegion,
-            useEmbeddings = kEmbeddingDim:(kEmbeddingDim + 2),
+            useEmbeddings = embeddingDim:maxEmbeddingDim,
             doPlot = showNonLinearPlots
           )
         }
@@ -442,7 +443,7 @@ non_linear_analysis <-
         "PoincareSD1" = hrv.data$NonLinearAnalysis[[1]]$PoincarePlot$SD1,
         "PoincareSD2" = hrv.data$NonLinearAnalysis[[1]]$PoincarePlot$SD2
       )
-      resultsTimeDim = list("EmbeddingDim" = kEmbeddingDim, "TimeLag" = kTimeLag)
+      resultsTimeDim = list("EmbeddingDim" = embeddingDim, "TimeLag" = timeLag)
 
       #as.data.frame considers that if the value of a list is NULL it does not exist.
       #It must contain NA
@@ -468,9 +469,9 @@ non_linear_analysis <-
         resultsPP,
         resultsTimeDim,
         group,
-        list("kEmbeddingDim" = kEmbeddingDim),
-        list("kTimeLag" = kTimeLag),
-        list("small_radius" = small_radius)
+        list("embeddingDim" = kEmbeddingDim),
+        list("timeLag" = timeLag),
+        list("smallCorrRadius" = smallCorrRadius)
       )
       as.data.frame(row_list)
     } # end of %dopar%
@@ -482,22 +483,29 @@ non_linear_analysis <-
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
       hrv.data = CreateNonLinearAnalysis(hrv.data)
       idx = which(dataFrame$filename == file)
-      stopifnot(length(idx) == 1)
+      stopifnot(length(idx) == 1, "File not found for RQA!")
+      rqaEmbedding = selectMaxEmbeddingDim(dataFrame$embeddingDim[[idx]])
+      timeLag = dataFrame$timeLag[[idx]]
+      smallCorrRadius = dataFrame$smallCorrRadius[[idx]]
       print(paste("Doing RQA for ", file))
-      hrv.data = RQA(
-        hrv.data,
-        indexNonLinearAnalysis = 1,
-        embeddingDim = dataFrame$kEmbeddingDim[[idx]],
-        timeLag = dataFrame$kTimeLag[[idx]],
-        radius = dataFrame$small_radius[[idx]],
-        doPlot = FALSE
+
+      indexNonLinearAnalysis = length(hrv.data$NonLinearAnalysis)
+      hrv.data$NonLinearAnalysis[[indexNonLinearAnalysis]]$rqa = nonlinearTseries::rqa(
+        takens = NULL,
+        time.series = hrv.data$Beat$RR,
+        embedding.dim = rqaEmbedding,
+        time.lag = timeLag,
+        radius = smallCorrRadius,
+        do.plot = FALSE,
+        save.RM = FALSE
       )
+      gc()
       resultsRQA = extractRqaStatistics(hrv.data$NonLinearAnalysis[[1]]$rqa)
       resultsRQA = as.data.frame(resultsRQA)
       # copy group to place it after RQA results
       resultsRQA$group = dataFrame$group[[idx]]
       # Remove those columns that were only need to carry RQA computation and group
-      keepCols = setdiff(colnames(dataFrame), c("kTimeLag", "kEmbeddingDim", "small_radius", "group"))
+      keepCols = setdiff(colnames(dataFrame), c("timeLag", "embeddingDim", "smallCorrRadius", "group"))
       updatedResults = cbind(
         dataFrame[idx, keepCols],
         resultsRQA
@@ -509,7 +517,7 @@ non_linear_analysis <-
     }
   } else {
     # Remove those columns that were only need to carry RQA computation and group
-    keepCols = setdiff(colnames(dataFrame), c("kTimeLag", "kEmbeddingDim", "small_radius"))
+    keepCols = setdiff(colnames(dataFrame), c("timeLag", "embeddingDim", "smallCorrRadius"))
     finalDataframe = dataFrame[, keepCols]
   }
   finalDataframe
