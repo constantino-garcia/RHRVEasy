@@ -469,7 +469,7 @@ non_linear_analysis <-
         resultsPP,
         resultsTimeDim,
         group,
-        list("embeddingDim" = kEmbeddingDim),
+        list("embeddingDim" = embeddingDim),
         list("timeLag" = timeLag),
         list("smallCorrRadius" = smallCorrRadius)
       )
@@ -483,7 +483,9 @@ non_linear_analysis <-
       hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
       hrv.data = CreateNonLinearAnalysis(hrv.data)
       idx = which(dataFrame$filename == file)
-      stopifnot(length(idx) == 1, "File not found for RQA!")
+      if (length(idx) != 1) {
+        stop("File not found for RQA!")
+      }
       rqaEmbedding = selectMaxEmbeddingDim(dataFrame$embeddingDim[[idx]])
       timeLag = dataFrame$timeLag[[idx]]
       smallCorrRadius = dataFrame$smallCorrRadius[[idx]]
