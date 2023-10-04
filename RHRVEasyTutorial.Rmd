@@ -129,7 +129,7 @@ RHRVEasy_overwrite_parameters
 
 The calculation of the nonlinear indices requires considerable computational resources. Whereas in a typical HRV analysis the computation of all the time and frequency domain indices for a few dozens of recordings often completes within a few minutes, the computation of the nonlinear indices could last many hours. By default the boolean parameter `nonLinear` is set to `FALSE`; only if this parameter is set to `TRUE` the nonlinear analysis is performed. Otherwise, only time and frequency indices will be calculated.
 
-**Warning**: the following sentence, comented in the tutorial, will take several hours to execute on a medium to high performance PC, and possibly several days on a low performance PC.
+**Warning**: the following sentence, commented in the tutorial, will take several hours to execute on a medium to high performance PC, and possibly several days on a low performance PC.
 
 ```{r}
 # #@TODO Borrar Código de depuración con los tiempos de ejecución
