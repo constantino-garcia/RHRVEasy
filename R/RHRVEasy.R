@@ -1,4 +1,4 @@
-file_validation <- function(path) {
+fileValidation <- function(path) {
   # 1. Check if path really exists
   if (dir.exists(path) != TRUE) {
     stop("\nThe path ", path, " does not exist")
@@ -62,26 +62,30 @@ easy_call <- function(hrv.data, mf, ...) {
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar% %do%
 time_analysis <-
-  function(format, files, class, rrs2, easy_options, ...) {
+  function(format, files, groups, paths, easy_options, ...) {
     dataFrame = foreach(
       file = files,
+      group = groups,
+      path = paths,
       .combine = rbind.data.frame,
       .export = c("preparing_analysis", "easy_call"),
       # .packages = "RHRV",
       .errorhandling = "pass"
     ) %dopar% {
       suppressMessages(library("RHRV", character.only = TRUE))
-      hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format,
+      hrv.data = preparing_analysis(file = file, rrs = path, format = format,
                                     easy_options = easy_options)
       hrv.data = easy_call(hrv.data, CreateTimeAnalysis, ...)
-      results = hrv.data$TimeAnalysis[]
-      name_file = list("filename" = file)
-      group = list("group" = class)
-      # group_name = list("group" = group)
-      row_list = c(name_file, results, group)
+      # TODO simplify
+      results = hrv.data$TimeAnalysis[[1]]
+      results$size = NULL
+      row_list = c(
+        list("file" = file),
+        list("group" = group),
+        results
+      )
       as.data.frame(row_list)
     }
-    #@todo  ?Remove size column???
     dataFrame
   }
 
@@ -89,16 +93,18 @@ time_analysis <-
 #' @importFrom RHRV CreateFreqAnalysis
 #' @importFrom RHRV InterpolateNIHR CalculatePSD CalculateEnergyInPSDBands
 freq_analysis <-
-  function(format, files, class, rrs2, easy_options, ...) {
+  function(format, files, groups, paths, easy_options, ...) {
     dataFrame = foreach(
       file = files,
+      group = groups,
+      path = paths,
       .combine = rbind.data.frame,
       .export = c("preparing_analysis", "easy_call"),
       # .packages = "RHRV",
       .errorhandling = "pass"
     ) %dopar% {
       suppressMessages(library("RHRV", character.only = TRUE))
-      hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format,
+      hrv.data = preparing_analysis(file = file, rrs = path, format = format,
                                     easy_options = easy_options)
       hrv.data = easy_call(hrv.data, InterpolateNIHR, ...)
       zero_indexes = which(hrv.data$HR == 0)
@@ -106,11 +112,10 @@ freq_analysis <-
       hrv.data$HR[zero_indexes] = hr_median
       hrv.data = easy_call(hrv.data, CreateFreqAnalysis, ...)
       hrv.data = easy_call(hrv.data, CalculatePSD, doPlot = F, ...)
-      name_file = list("filename" = file)
+      # TODO: simplify
       x1 = easy_call(hrv.data, CalculateEnergyInPSDBands, ...)
       names(x1) = c("ULF", "VLF", "LF", "HF")
-      group = list("group" = class)
-      row_list = c(name_file, x1, group)
+      row_list = c(list("file" = file), x1, list("group" = group))
       as.data.frame(row_list)
     }
     dataFrame
@@ -120,16 +125,18 @@ freq_analysis <-
 #' @importFrom RHRV CreateFreqAnalysis
 #' @importFrom RHRV InterpolateNIHR CalculatePowerBand
 wavelet_analysis <-
-  function(format, files, class, rrs2, easy_options, ...) {
-    dataFrameMWavelet = foreach(
+  function(format, files, groups, paths, easy_options, ...) {
+    freqResults = foreach(
       file = files,
+      group = groups,
+      path = paths,
       .combine = rbind.data.frame,
       .export = c("preparing_analysis", "easy_call"),
       # .packages = "RHRV",
       .errorhandling = "pass"
     ) %dopar% {
       suppressMessages(library("RHRV", character.only = TRUE))
-      hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format, easy_options = easy_options)
+      hrv.data = preparing_analysis(file = file, rrs = path, format = format, easy_options = easy_options)
       hrv.data = easy_call(hrv.data, InterpolateNIHR, ...)
       zero_indexes = which(hrv.data$HR == 0)
       hr_median = median(hrv.data$HR[-zero_indexes])
@@ -141,21 +148,18 @@ wavelet_analysis <-
 
       index = length(hrv.data$FreqAnalysis)
       resultsWavelet = hrv.data$FreqAnalysis[[index]]
-      resultsWavelet$File = file
-      resultsWavelet$HRV = NA
+      resultsWavelet$file = file
+      resultsWavelet$HRV = NULL
       resultsWavelet$ULF = sum(hrv.data$FreqAnalysis[[index]]$ULF)
       resultsWavelet$VLF = sum(hrv.data$FreqAnalysis[[index]]$VLF)
       resultsWavelet$LF = sum(hrv.data$FreqAnalysis[[index]]$LF)
       resultsWavelet$HF = sum(hrv.data$FreqAnalysis[[index]]$HF)
-      resultsWavelet$LFHF = NA
-      resultsWavelet$Time = NA
-      name_file = list()
-      x1 = as.list(resultsWavelet)
-      group = list("group" = class)
-      row_list = c(name_file, x1, group)
+      resultsWavelet$LFHF = NULL
+      resultsWavelet$Time = NULL
+      row_list = c(resultsWavelet, list("group" = group))
       as.data.frame(row_list)
     }
-    dataFrameMWavelet
+    freqResults
   }
 
 
@@ -1106,18 +1110,18 @@ saveHRVindexes <- function(results, saveHRVindexesInPath = ".") {
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
 #' @importFrom doParallel registerDoParallel
-.prepare_cluster <- function(n_jobs, verbose) {
+.prepare_cluster <- function(nJobs, verbose) {
   n_cores <- parallel::detectCores(logical = FALSE)
-  if (n_jobs <= 0) {
-    n_jobs <- n_cores
-  } else if (n_jobs > n_cores) {
-    n_jobs <- n_cores
+  if (nJobs <= 0) {
+    nJobs <- n_cores
+  } else if (nJobs > n_cores) {
+    nJobs <- n_cores
   }
-  if (n_jobs > 1) {
-    cl <- parallel::makeCluster(n_jobs, outfile="") # using outfile = "" may be useful for debugging
+  if (nJobs > 1) {
+    cl <- parallel::makeCluster(nJobs, outfile="") # using outfile = "" may be useful for debugging
     doParallel::registerDoParallel(cl)
     if (verbose) {
-      message(paste("Registering cluster with", n_jobs, "nodes"))
+      message(paste("Registering cluster with", nJobs, "nodes"))
     }
   } else {
     cl <- NULL
@@ -1127,13 +1131,139 @@ saveHRVindexes <- function(results, saveHRVindexesInPath = ".") {
 }
 
 
-.build_easy_options <- function(verbose, significance) {
+.build_easy_options <- function(verbose, significance, method) {
   list(
     "verbose" = verbose,
-    "significance" = significance
+    "significance" = significance,
+    "method" = method
   )
 }
+calculateHRVIndices <- function(
+    folders,
+    format,
+    typeAnalysis,
+    nonLinear,
+    doRQA,   # ignored if nonLinear = FALSE
+    nJobs,
+    easy_options,
+    ...) {
 
+
+    cl <- .prepare_cluster(nJobs, easy_options$verbose)
+
+    filesByFolder = lapply(folders, \(folder) {
+      fileValidation(folder)
+      data.frame(
+        "folder" = folder,
+        "file" = list.files(folder),
+        "group" = split_path(folder)[[1]]
+      )
+    })
+    files = do.call(rbind, filesByFolder)
+
+    timeResults = time_analysis(
+      format = format,
+      files = files$file,
+      groups = files$group,
+      paths = files$folder,
+      easy_options = easy_options,
+      ...
+    )
+
+    # Frequency analysis
+    if (typeAnalysis == "fourier") {
+      freqResults = freq_analysis(
+        format = format,
+        files = files$file,
+        groups = files$group,
+        paths = files$folder,
+        easy_options = easy_options,
+        ...
+      )
+    }
+    if (typeAnalysis == "wavelet") {
+      freqResults =
+        wavelet_analysis(
+          format = format,
+          files = files$file,
+          groups = files$group,
+          paths = files$folder,
+          type = typeAnalysis,
+          easy_options = easy_options,
+          ...
+        )
+    }
+    if (nonLinear) {
+      if (easy_options$verbose) {
+        message("Performing non linear analysis...")
+      }
+      nonlinearResults =
+        non_linear_analysis(
+          format = format,
+          files = files$file,
+          groups = files$group,
+          paths = files$folder,
+          easy_options = easy_options,
+          doRQA = doRQA,
+          ...
+        )
+    }
+    if (!is.null(cl)) {
+      parallel::stopCluster(cl)
+    }
+
+    # Merge
+    allResults = merge(
+      timeResults,
+      freqResults,
+      by = c("file", "group"),
+      all = TRUE
+    )
+    if (nonLinear) {
+      allResults = merge(
+        allResults,
+        nonlinearResults,
+        by = c("file", "group"),
+        all = TRUE
+      )
+    }
+    allResults
+  }
+
+
+#' @export
+RHRVEasy2 <-
+  function(folders,
+           correction = FALSE,
+           correctionMethod = "bonferroni",
+           verbose = FALSE,
+           format = "RR",
+           typeAnalysis = c('fourier', 'wavelet'),
+           significance_level = 0.25,
+           nonLinear = FALSE,
+           doRQA = FALSE,   # ignored if nonLinear = FALSE
+           saveHRVindexesInPath = NULL,
+           nJobs = 1,
+           ...) {
+
+    typeAnalysis = match.arg(typeAnalysis)
+    easy_options <- .build_easy_options(
+      verbose = verbose,
+      significance = significance_level,
+      method = ifelse(correction, correctionMethod, NULL)
+    )
+    HRVIndices = calculateHRVIndices(
+      folders = folders,
+      format = format,
+      typeAnalysis = typeAnalysis,
+      nonLinear = nonLinear,
+      doRQA = doRQA,
+      nJobs = nJobs,
+      easy_options = easy_options,
+      ...
+    )
+    statsAnalysis(HRVIndices, easy_options)
+}
 
 #' @export
 RHRVEasy <-
@@ -1147,17 +1277,17 @@ RHRVEasy <-
            nonLinear = FALSE,
            doRQA = FALSE,   # ignored if nonLinear = FALSE
            saveHRVindexesInPath = NULL,
-           n_jobs = 1,
+           nJobs = 1,
            ...) {
-    dataFrameMWavelet = data.frame()
-    dataFrameMTime = data.frame()
-    dataFrameMFreq = data.frame()
-    dataFrameMNonLinear = data.frame()
+    freqResults = data.frame()
+    timeResults = data.frame()
+    freqResults = data.frame()
+    nonlinearResults = data.frame()
     listNonLinearStatisticalAnalysis = list()
     listTimeStatysticalAnalysis = list()
     listFreqStatysticalAnalysis = list()
 
-    cl <- .prepare_cluster(n_jobs, verbose)
+    cl <- .prepare_cluster(nJobs, verbose)
 
     easy_options <- .build_easy_options(
       verbose = verbose,
@@ -1165,10 +1295,10 @@ RHRVEasy <-
     )
 
     for (folder in folders) {
-      file_validation(folder)
-      dataFrameMTime = rbind(
-        dataFrameMTime,
-        dataFrameMTime = time_analysis(
+      fileValidation(folder)
+      timeResults = rbind(
+        timeResults,
+        timeResults = time_analysis(
           format,
           list.files(folder),
           split_path(folder)[1],
@@ -1181,8 +1311,8 @@ RHRVEasy <-
         if (easy_options$verbose) {
           message("Performing non linear analysis...")
         }
-        dataFrameMNonLinear = rbind(
-          dataFrameMNonLinear,
+        nonlinearResults = rbind(
+          nonlinearResults,
           non_linear_analysis(
             format,
             list.files(folder),
@@ -1195,11 +1325,12 @@ RHRVEasy <-
         )
       }
     }
+    saveRDS(timeResults, "time.RDS") # FIXME
 
     numberOfExperimentalGroups = length(folders)
     # Statistical analysis of both
 
-    listTimeStatysticalAnalysis = statistical_analysisTime(dataFrameMTime,
+    listTimeStatysticalAnalysis = statistical_analysisTime(timeResults,
                                                            numberOfExperimentalGroups,
                                                            correctionMethod,
                                                            easy_options)
@@ -1207,9 +1338,9 @@ RHRVEasy <-
     # FREQUENCY:
     if (typeAnalysis == "fourier") {
       for (folder in folders) {
-        dataFrameMFreq = rbind(
-          dataFrameMFreq,
-          dataFrameMFreq = freq_analysis(
+        freqResults = rbind(
+          freqResults,
+          freqResults = freq_analysis(
             format,
             list.files(folder),
             split_path(folder)[1],
@@ -1220,7 +1351,8 @@ RHRVEasy <-
         )
       }
 
-      listFreqStatysticalAnalysis = statistical_analysisFreq(dataFrameMFreq,
+      saveRDS(freqResults, "freq.RDS") # FIXME
+      listFreqStatysticalAnalysis = statistical_analysisFreq(freqResults,
                                                              numberOfExperimentalGroups,
                                                              correctionMethod,
                                                              easy_options)
@@ -1229,9 +1361,9 @@ RHRVEasy <-
     # WAVELET
     if (typeAnalysis == "wavelet") {
       for (folder in folders) {
-        dataFrameMWavelet = rbind(
-          dataFrameMWavelet,
-          dataFrameMWavelet =
+        freqResults = rbind(
+          freqResults,
+          freqResults =
             wavelet_analysis(
               format,
               list.files(folder),
@@ -1243,21 +1375,22 @@ RHRVEasy <-
             )
         )
       }
-      listFreqStatysticalAnalysis = statistical_analysisFreq(dataFrameMWavelet,
+      saveRDS(freqResults, "wavelet.RDS") # FIXME
+      listFreqStatysticalAnalysis = statistical_analysisFreq(freqResults,
                                                              numberOfExperimentalGroups,
                                                              correctionMethod,
                                                              easy_options)
 
-      dataFrameMFreq = dataFrameMWavelet
+      freqResults = freqResults
     }
 
     if (!is.null(cl)) {
       parallel::stopCluster(cl)
     }
 
-    if (!all(is.na(dataFrameMNonLinear))) {
+    if (!all(is.na(nonlinearResults))) {
       listNonLinearStatisticalAnalysis = statistical_analysisNonLinear(
-        dataFrameMNonLinear,
+        nonlinearResults,
         numberOfExperimentalGroups,
         correctionMethod,
         easy_options
@@ -1275,11 +1408,11 @@ RHRVEasy <-
     listpValues = correctpValues(uncorrectedPvalues, correction, correctionMethod)
 
     results = list(
-      "TimeAnalysis" = dataFrameMTime,
+      "TimeAnalysis" = timeResults,
       "StatysticalAnalysisTime" = listTimeStatysticalAnalysis,
-      "FrequencyAnalysis" = dataFrameMFreq,
+      "FrequencyAnalysis" = freqResults,
       "StatysticalAnalysisFrequency" = listFreqStatysticalAnalysis,
-      "NonLinearAnalysis" = dataFrameMNonLinear,
+      "NonLinearAnalysis" = nonlinearResults,
       "StatysticalAnalysisNonLinear" = listNonLinearStatisticalAnalysis,
       "pValues" = listpValues,
       "uncorrectedPvalues" = uncorrectedPvalues

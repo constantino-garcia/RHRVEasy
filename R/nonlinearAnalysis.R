@@ -87,7 +87,7 @@ collectRQA <- function(rqa) {
 }
 
 
-collectResuls <- function(hrv.data, file, class, config, doRQA) {
+collectResuls <- function(hrv.data, file, group, config, doRQA) {
   results = lapply(
     # apply an extraction function to these pairs of "Final name" = "nonlinear list name"
     c(
@@ -123,7 +123,7 @@ collectResuls <- function(hrv.data, file, class, config, doRQA) {
   results = c(
     list(
       "filename" = file,
-      "group" = class
+      "group" = group
     ),
     results,
     configList
@@ -498,7 +498,7 @@ tryLyapunovEstimation <- function(hrv.data, file, config) {
 }
 
 
-nlaSingleFile <- function(file, rrs2, format, class, easy_options, doRQA) {
+nlaSingleFile <- function(file, rrs2, format, group, easy_options, doRQA) {
   # Config is a list that sets some parameters needed for the analysis
   config = list(
     # Set the value of the Theiler window for avoiding temporal correlations
@@ -544,7 +544,7 @@ nlaSingleFile <- function(file, rrs2, format, class, easy_options, doRQA) {
     hrv.data = tryRQA(hrv.data, file, config)
   }
 
-  results = collectResuls(hrv.data, file, class, config, doRQA)
+  results = collectResuls(hrv.data, file, group, config, doRQA)
   if (easy_options$verbose) {
     message(
       paste(
@@ -569,12 +569,14 @@ nlaSingleFile <- function(file, rrs2, format, class, easy_options, doRQA) {
 #' @importFrom RHRV RQA PoincarePlot
 #' @importFrom nonlinearTseries rqa
 non_linear_analysis <-
-  function(format, files, class, rrs2, easy_options, doRQA, ...) {
+  function(format, files, groups, paths, easy_options, doRQA, ...) {
     # Compute all nonlinear statistics but RQA in parallel using %dopar%.
     # RQA is avoided due to its high memory consumption
     resultsDataFrame =
       foreach(
       file = files,
+      group = groups,
+      path = paths,
       .combine = rbind.data.frame,
       # .export = c("preparing_analysis", "easy_call",
       #             "nltsFilter", "selectMaxEmbeddingDim", "tryRQA",
@@ -590,7 +592,7 @@ non_linear_analysis <-
       .errorhandling = "pass"
     ) %dopar% {
       suppressPackageStartupMessages(library("RHRV", character.only = TRUE))
-      fileResults = nlaSingleFile(file, rrs2, format, class, easy_options, doRQA)
+      fileResults = nlaSingleFile(file, path, format, group, easy_options, doRQA)
       fileResults
     } # end of %dopar%
     resultsDataFrame
