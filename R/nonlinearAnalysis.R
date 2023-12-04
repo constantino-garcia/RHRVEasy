@@ -2,9 +2,6 @@
 selectMaxEmbeddingDim <- function(embeddingDim) {embeddingDim + 2}
 
 tryRQA <- function(hrv.data, file, config) {
-  # TODO: easy.config
-  message(paste("Doing RQA for ", file))
-
   hrv.data = tryCatch({
     hrv.data$NonLinearAnalysis[[1]]$rqa = with(
       config,
@@ -122,7 +119,7 @@ collectResuls <- function(hrv.data, file, group, config, doRQA) {
   )
   results = c(
     list(
-      "filename" = file,
+      "file" = file,
       "group" = group
     ),
     results,
@@ -132,7 +129,7 @@ collectResuls <- function(hrv.data, file, group, config, doRQA) {
 }
 
 #' @importFrom RHRV CalculateTimeLag
-tryTimeLagEstimation <- function(hrv.data, easy_options) {
+tryTimeLagEstimation <- function(hrv.data, easyOptions) {
   lag = 30
   timeLag = tryCatch({
     timeLag <-
@@ -182,7 +179,7 @@ tryTimeLagEstimation <- function(hrv.data, easy_options) {
           timeLag
         },
         error = function(cond) {
-          if (easy_options$verbose) {
+          if (easyOptions$verbose) {
             message("Using default timeLag for current recording...")
           }
           30
@@ -190,9 +187,9 @@ tryTimeLagEstimation <- function(hrv.data, easy_options) {
       })
     })
   })
-  if (easy_options$verbose) {
-    message(c("Time Lag for takens reconstruction: ", timeLag))
-  }
+#  if (easyOptions$verbose) {
+#    message(c("Time Lag for takens reconstruction: ", timeLag))
+#  }
   timeLag
 }
 
@@ -486,7 +483,7 @@ tryLyapunovEstimation <- function(hrv.data, file, config) {
   error = function(error) {
     warning(
       paste0(
-        "Lyapunov Estimation failed for file ",
+        "Lyapunov Estimation failed for file",
         file,
         ". Setting to NA."
       )
@@ -498,7 +495,7 @@ tryLyapunovEstimation <- function(hrv.data, file, config) {
 }
 
 
-nlaSingleFile <- function(file, rrs2, format, group, easy_options, doRQA) {
+nlaSingleFile <- function(file, rrs2, format, group, easyOptions, doRQA) {
   # Config is a list that sets some parameters needed for the analysis
   config = list(
     # Set the value of the Theiler window for avoiding temporal correlations
@@ -510,10 +507,13 @@ nlaSingleFile <- function(file, rrs2, format, group, easy_options, doRQA) {
     "kMaxRadius" = 50
   )
 
-  hrv.data = preparing_analysis(file = file, rrs = rrs2, format = format,
-                                easy_options = easy_options)
+  if (easyOptions$verbose) {
+    message(paste("Starting non-linear analysis for file", file))
+  }
+  hrv.data = prepareAnalysis(file = file, rrs = rrs2, format = format,
+                                easyOptions = easyOptions)
   hrv.data = CreateNonLinearAnalysis(hrv.data)
-  config$timeLag = tryTimeLagEstimation(hrv.data, easy_options)
+  config$timeLag = tryTimeLagEstimation(hrv.data, easyOptions)
 
   #Poincare does not depend on the calculation of time lag or correlation dimension
   #unlike the rest of the nonlinear statistics, its calculation should never fail
@@ -533,19 +533,30 @@ nlaSingleFile <- function(file, rrs2, format, group, easy_options, doRQA) {
                                      embeddingDim = config$embeddingDim,
                                      radius = NULL)
 
-
+  if (easyOptions$verbose) {
+    message(paste("Computing correlation dimension and sample entropy for file", file))
+  }
   hrv.data = tryCorrDim(hrv.data, file, config)
   hrv.data = trySampleEntropy(hrv.data, file, config)
 
   ## Get a reasonable radius for both Lyapunov and RQA
+  if (easyOptions$verbose) {
+    message(paste("Computing Lyapunov exponent for file", file))
+  }
   config$smallCorrRadius = findSmallRadius(hrv.data, file, config)
   hrv.data = tryLyapunov(hrv.data, file, config)
+
+
   if (doRQA) {
+    if (easyOptions$verbose) {
+      message(paste("Computing RQA for file", file))
+    }
     hrv.data = tryRQA(hrv.data, file, config)
   }
 
   results = collectResuls(hrv.data, file, group, config, doRQA)
-  if (easy_options$verbose) {
+  if (easyOptions$verbose) {
+    message(paste("Non-linear analysis done for file ", file, ":", sep=""))
     message(
       paste(
         capture.output({
@@ -568,8 +579,8 @@ nlaSingleFile <- function(file, rrs2, format, group, easy_options, doRQA) {
 #' @importFrom RHRV CalculateMaxLyapunov EstimateMaxLyapunov
 #' @importFrom RHRV RQA PoincarePlot
 #' @importFrom nonlinearTseries rqa
-non_linear_analysis <-
-  function(format, files, groups, paths, easy_options, doRQA, ...) {
+easyNonLinearAnalysis <-
+  function(format, files, groups, paths, easyOptions, doRQA, ...) {
     # Compute all nonlinear statistics but RQA in parallel using %dopar%.
     # RQA is avoided due to its high memory consumption
     resultsDataFrame =
@@ -577,8 +588,8 @@ non_linear_analysis <-
       file = files,
       group = groups,
       path = paths,
-      .combine = rbind.data.frame,
-      # .export = c("preparing_analysis", "easy_call",
+      .combine = rbind,
+      # .export = c("prepareAnalysis", "easyCall",
       #             "nltsFilter", "selectMaxEmbeddingDim", "tryRQA",
       #             "findSmallRadius", "collectRQA", "collectResuls",
       #             "tryTimeLagEstimation", "tryEmbeddingDim", "augmentCorrDimCalculations",
@@ -591,89 +602,11 @@ non_linear_analysis <-
       # .packages = "RHRV",
       .errorhandling = "pass"
     ) %dopar% {
-      suppressPackageStartupMessages(library("RHRV", character.only = TRUE))
-      fileResults = nlaSingleFile(file, path, format, group, easy_options, doRQA)
+      suppressPackageStartupMessages(library("RHRV", character.only = TRUE, warn.conflicts = FALSE))
+      fileResults <- nlaSingleFile(file, path, format, group, easyOptions, doRQA)
       fileResults
     } # end of %dopar%
     resultsDataFrame
   }
 
 
-# Dunn Statistical tests for non-linear statistics
-dunnNonLinear <- function(dfM, correctionMethod, easy_options = easy_options) {
-  dfM$group = factor(dfM$group)
-  CorrelationStatistic = NA
-  SampleEntropy = NA
-  MaxLyapunov  = NA
-  REC = NA
-  RATIO = NA
-  DET = NA
-  DIV = NA
-  Lmax = NA
-  Lmean = NA
-  LmeanWithoutMain = NA
-  ENTR = NA
-  TREND = NA
-  LAM = NA
-  Vmax = NA
-  Vmean = NA
-  PoincareSD1 = NA
-  PoincareSD2  = NA
-
-
-  CorrelationStatistic = posthoc.kruskal.dunn.test.CheckAllValuesEqual(CorrelationStatistic ~ group,
-                                                                       data = dfM,
-                                                                       p.adjt = correctionMethod, easy_options = easy_options)
-  SampleEntropy = posthoc.kruskal.dunn.test.CheckAllValuesEqual(SampleEntropy ~ group, data =
-                                                                  dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  MaxLyapunov = posthoc.kruskal.dunn.test.CheckAllValuesEqual(MaxLyapunov ~ group, data =
-                                                                dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  REC = posthoc.kruskal.dunn.test.CheckAllValuesEqual(REC ~ group, data =
-                                                        dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  RATIO = posthoc.kruskal.dunn.test.CheckAllValuesEqual(RATIO ~ group, data =
-                                                          dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  DET = posthoc.kruskal.dunn.test.CheckAllValuesEqual(DET ~ group, data =
-                                                        dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  DIV = posthoc.kruskal.dunn.test.CheckAllValuesEqual(DIV ~ group, data =
-                                                        dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  Lmax = posthoc.kruskal.dunn.test.CheckAllValuesEqual(Lmax ~ group, data =
-                                                         dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  Lmean = posthoc.kruskal.dunn.test.CheckAllValuesEqual(Lmean ~ group, data =
-                                                          dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  LmeanWithoutMain = posthoc.kruskal.dunn.test.CheckAllValuesEqual(LmeanWithoutMain ~ group, data =
-                                                                     dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  ENTR = posthoc.kruskal.dunn.test.CheckAllValuesEqual(ENTR ~ group, data =
-                                                         dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  TREND = posthoc.kruskal.dunn.test.CheckAllValuesEqual(TREND ~ group, data =
-                                                          dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  LAM = posthoc.kruskal.dunn.test.CheckAllValuesEqual(LAM ~ group, data =
-                                                        dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  Vmax = posthoc.kruskal.dunn.test.CheckAllValuesEqual(Vmax ~ group, data =
-                                                         dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  Vmean = posthoc.kruskal.dunn.test.CheckAllValuesEqual(Vmean ~ group, data =
-                                                          dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  PoincareSD1 = posthoc.kruskal.dunn.test.CheckAllValuesEqual(PoincareSD1 ~ group, data =
-                                                                dfM, p.adjt = correctionMethod, easy_options = easy_options)
-  PoincareSD2  = posthoc.kruskal.dunn.test.CheckAllValuesEqual(PoincareSD2 ~ group, data =
-                                                                 dfM, p.adjt = correctionMethod, easy_options = easy_options)
-
-  list(
-    CorrelationStatistic,
-    SampleEntropy,
-    MaxLyapunov,
-    REC,
-    RATIO,
-    DET,
-    DIV,
-    Lmax,
-    Lmean,
-    LmeanWithoutMain,
-    ENTR,
-    TREND,
-    LAM,
-    Vmax,
-    Vmean,
-    PoincareSD1,
-    PoincareSD2
-  )
-}
