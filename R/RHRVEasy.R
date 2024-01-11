@@ -44,6 +44,43 @@ RHRVEasy <-
   }
 
 
+computeEasyCIs <- function(easyObject, test) {
+  grouped_data <- split(easyObject$HRVIndices[[test$HRVIndex]], easyObject$HRVIndices$group)
+  if (test$method == "ANOVA") {
+    cis <- lapply(grouped_data, \(x) {
+      ci <- t.test(x)$conf.int
+      attr(ci, "method") <- "Normal CI without adjustment"
+      ci
+    })
+  } else {
+    cis <- lapply(grouped_data, \(x) {
+      conf <- 0.95
+      ci <- boot::boot.ci(
+        boot::boot(x, statistic = \(x, i) mean(x[i]), R = 1000),
+        type = "basic",
+        conf = conf
+      )
+      ci <- ci$basic[, 4:5]
+      attr(ci, "conf.level") <- conf
+      attr(ci, "method") <- "Boostrapped CI without adjustment"
+      ci
+    })
+  }
+  cis
+}
+
+printGroupCI <- function(cis, group, digits) {
+  conf <- attr(cis[[group]], "conf.level")
+  method <- attr(cis[[group]], "method")
+  cat(
+    sep = "",
+    "\t", group, "'s ", conf * 100, "% CI of the mean: (",
+    round(cis[[group]][1], digits = digits), ", ",
+    round(cis[[group]][2], digits = digits), ")",
+    " [", method,"]\n"
+  )
+}
+
 #' @export
 print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
   easyOptions <- attr(x, "easyOptions")
@@ -56,27 +93,7 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
     junk <- foreach(test = iterators::iter(significantx, by = "row")) %do% {
       # Compute mean CIS using Normal CIs or Boostrapped CIs depending on the
       # data distribution
-      grouped_data <- split(x$HRVIndices[[test$HRVIndex]], x$HRVIndices$group)
-      if (test$method == "ANOVA") {
-        cis <- lapply(grouped_data, \(x) {
-          ci <- t.test(x)$conf.int
-          attr(ci, "method") <- "Normal CI without adjustment"
-          ci
-        })
-      } else {
-        cis <- lapply(grouped_data, \(x) {
-          conf <- 0.95
-          ci <- boot::boot.ci(
-            boot::boot(x, statistic = \(x, i) mean(x[i]), R = 1000),
-            type = "basic",
-            conf = conf
-          )
-          ci <- ci$basic[, 4:5]
-          attr(ci, "conf.level") <- conf
-          attr(ci, "method") <- "Boostrapped CI without adjustment"
-          ci
-        })
-      }
+      cis <- computeEasyCIs(x, test)
       # Actual printing happens here
       with(test, {
         method <- ifelse(easyOptions$method == "none", "", easyOptions$method)
@@ -85,18 +102,14 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
           "Significant differences in ",  HRVIndex, " (", method," p-value = ", format(adj.p.value, digits), "):\n"
         )
       })
-      for (group in names(cis)) {
-        conf <- attr(cis[[group]], "conf.level")
-        method <- attr(cis[[group]], "method")
-        cat(
-          sep = "",
-          "\t", group, "'s ", conf * 100, "% CI of the mean: (",
-          round(cis[[group]][1], digits = digits), ", ",
-          round(cis[[group]][2], digits = digits), ")",
-          " [", method,"]\n"
-        )
+      if (length(cis) == 2) {
+        for (group in names(cis)) {
+          printGroupCI(cis, group, digits)
+        }
+        cat("\n")
+      } else {
+          # TODO
       }
-      cat("\n")
     }
   }
   invisible(x)
