@@ -6,7 +6,7 @@ RHRVEasy <-
            verbose = FALSE,
            format = "RR",
            typeAnalysis = c('fourier', 'wavelet'),
-           significance_level = 0.05,
+           significance = 0.05,
            nonLinear = FALSE,
            doRQA = FALSE,   # ignored if nonLinear = FALSE
            saveHRVindexesInPath = NULL,
@@ -19,7 +19,7 @@ RHRVEasy <-
     }
     easyOptions <- buildEasyOptions(
       verbose = verbose,
-      significance = significance_level,
+      significance = significance,
       method = correctionMethod
     )
     HRVIndices <- calculateHRVIndices(

@@ -78,10 +78,10 @@ RHRVEasy_obj_fdr = RHRVEasy(folders = c(NSR_DB, CHF_DB), correctionMethod = 'fdr
 head(cbind(RHRVEasy_obj_no_correction$pValues, RHRVEasy_obj_fdr$pValues, RHRVEasy_obj$pValues))
 ```
 
-The significance level can be changed with the parameter `significance_level` (the default value is 0.05):
+The significance level can be changed with the parameter `significance` (the default value is 0.05):
 
 ```{r}
-RHRVEasy_obj_001 = RHRVEasy(folders = c(NSR_DB, CHF_DB), significance_level = 0.01)
+RHRVEasy_obj_001 = RHRVEasy(folders = c(NSR_DB, CHF_DB), significance = 0.01)
 #When we lower the significance level from 0.05 to 0.01 there are no longer significant differences in the SDNNIDX temporal index
 RHRVEasy_obj_001
 ```

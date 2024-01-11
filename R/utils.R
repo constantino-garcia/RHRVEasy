@@ -54,7 +54,7 @@ prepareAnalysis <- function(file, rrs, format, easyOptions) {
       hrv.data
     },
     warning = function(w) {
-      w$message <- paste0("File ", file,": ", w$message)
+      w$message <- paste0("File ", file,": ", w$message, "\n")
       warning(w)
       invokeRestart("muffleWarning")
     }

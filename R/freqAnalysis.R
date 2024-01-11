@@ -31,7 +31,7 @@ easyFreqAnalysis <-
           easyCall(hrv.data, InterpolateNIHR, ...)
         },
         warning = function(w) {
-          w$message <- paste0("File ", file,": ", w$message)
+          w$message <- paste0("File ", file,": ", w$message, "\n")
           warning(w)
           invokeRestart("muffleWarning")
         }
@@ -83,7 +83,7 @@ easyWaveletAnalysis <-
           easyCall(hrv.data, InterpolateNIHR, ...)
         },
         warning = function(w) {
-          w$message <- paste0("File ", file,": ", w$message)
+          w$message <- paste0("File ", file,": ", w$message, "\n")
           warning(w)
           invokeRestart("muffleWarning")
         }
