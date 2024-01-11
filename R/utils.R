@@ -25,9 +25,6 @@ prepareAnalysis <- function(file, rrs, format, easyOptions) {
   hrv.data <- CreateHRVData()
   hrv.data <- SetVerbose(hrv.data, FALSE)
 
-  if (easyOptions$verbose) {
-    message(c("Loading recording ", file))
-  }
   hrv.data <- tryCatch({
     hrv.data <- LoadBeat(
       fileType = format,
@@ -74,7 +71,7 @@ easyCall <- function(hrv.data, mf, ...) {
 
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 prepareEasyCluster <- function(nJobs, verbose) {
   n_cores <- parallel::detectCores(logical = FALSE)
   if (nJobs <= 0) {
@@ -84,7 +81,8 @@ prepareEasyCluster <- function(nJobs, verbose) {
   }
   if (nJobs > 1) {
     cl <- parallel::makeCluster(nJobs, outfile="") # using outfile = "" may be useful for debugging
-    doParallel::registerDoParallel(cl)
+    # doParallel::registerDoParallel(cl)
+    doSNOW::registerDoSNOW(cl)
     if (verbose) {
       message(paste("Registering cluster with", nJobs, "nodes"))
     }
@@ -102,3 +100,19 @@ splitPath <- function(path) {
   return(c(basename(path), splitPath(dirname(path))))
 }
 
+
+
+
+# FIXME @importClassesFrom progress progress_bar
+
+#' @import progress
+updateProgressFactory <- function(analysis, files){
+  pb <- progress::progress_bar$new(
+    format = paste(analysis, "of :file [:bar] :elapsed | eta: :eta"),
+    total = length(files),
+    width = 80
+  )
+  function(n) {
+    pb$tick(tokens = list("file" = files[n]))
+  }
+}

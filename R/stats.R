@@ -76,7 +76,7 @@ indexPairwiseComparison <- function(HRVIndexValues, group, omnibusMethod) {
 
 #' @importFrom iterators iter
 statsAnalysis <- function(HRVIndices, easyOptions) {
-  indicesNames <- setdiff(colnames(HRVIndices), c("file", "group"))
+  indicesNames <- setdiff(colnames(HRVIndices), c("file", "group", "timeLag", "embeddingDim"))
   pVals <- foreach(
     column = indicesNames,
     .combine = rbind

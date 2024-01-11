@@ -129,6 +129,7 @@ calculateHRVIndices <- function(
 
 
     cl <- prepareEasyCluster(nJobs, easyOptions$verbose)
+    easyOptions$parallel <- !is.null(cl)
 
     filesByFolder <- lapply(folders, \(folder) {
       fileValidation(folder, easyOptions)
@@ -149,7 +150,6 @@ calculateHRVIndices <- function(
       easyOptions = easyOptions,
       ...
     )
-
     # Frequency analysis
     if (typeAnalysis == "fourier") {
       freqResults <- easyFreqAnalysis(
@@ -174,9 +174,6 @@ calculateHRVIndices <- function(
         )
     }
     if (nonLinear) {
-      if (easyOptions$verbose) {
-        message("Performing non linear analysis...")
-      }
       nonlinearResults <-
         easyNonLinearAnalysis(
           format = format,

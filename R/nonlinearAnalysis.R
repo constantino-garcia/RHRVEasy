@@ -80,6 +80,7 @@ collectRQA <- function(rqa) {
       ifelse(isInvalid(result), NA, result)
     }
   )
+  names(resultsRQA) <- paste0("RQA_", names(resultsRQA))
   resultsRQA
 }
 
@@ -179,17 +180,12 @@ tryTimeLagEstimation <- function(hrv.data, easyOptions) {
           timeLag
         },
         error = function(cond) {
-          if (easyOptions$verbose) {
-            message("Using default timeLag for current recording...")
-          }
+          # TODO: warning message message("Using default timeLag for current recording...")
           30
         })
       })
     })
   })
-#  if (easyOptions$verbose) {
-#    message(c("Time Lag for takens reconstruction: ", timeLag))
-#  }
   timeLag
 }
 
@@ -507,9 +503,6 @@ nlaSingleFile <- function(file, rrs2, format, group, easyOptions, doRQA) {
     "kMaxRadius" = 50
   )
 
-  if (easyOptions$verbose) {
-    message(paste("Starting non-linear analysis for file", file))
-  }
   hrv.data = prepareAnalysis(file = file, rrs = rrs2, format = format,
                                 easyOptions = easyOptions)
   hrv.data = CreateNonLinearAnalysis(hrv.data)
@@ -533,39 +526,29 @@ nlaSingleFile <- function(file, rrs2, format, group, easyOptions, doRQA) {
                                      embeddingDim = config$embeddingDim,
                                      radius = NULL)
 
-  if (easyOptions$verbose) {
-    message(paste("Computing correlation dimension and sample entropy for file", file))
-  }
   hrv.data = tryCorrDim(hrv.data, file, config)
   hrv.data = trySampleEntropy(hrv.data, file, config)
 
   ## Get a reasonable radius for both Lyapunov and RQA
-  if (easyOptions$verbose) {
-    message(paste("Computing Lyapunov exponent for file", file))
-  }
   config$smallCorrRadius = findSmallRadius(hrv.data, file, config)
   hrv.data = tryLyapunov(hrv.data, file, config)
 
-
   if (doRQA) {
-    if (easyOptions$verbose) {
-      message(paste("Computing RQA for file", file))
-    }
     hrv.data = tryRQA(hrv.data, file, config)
   }
 
   results = collectResuls(hrv.data, file, group, config, doRQA)
-  if (easyOptions$verbose) {
-    message(paste("Non-linear analysis done for file ", file, ":", sep=""))
-    message(
-      paste(
-        capture.output({
-          print(results)
-        }),
-        collapse = "\n"
-      )
-    )
-  }
+  #if (easyOptions$verbose) {
+  #  message(paste("Non-linear analysis done for file ", file, ":", sep=""))
+  #  message(
+  #    paste(
+  #      capture.output({
+  #        print(results)
+  #      }),
+  #      collapse = "\n"
+  #    )
+  #  )
+  #}
   results
 }
 
@@ -581,29 +564,28 @@ nlaSingleFile <- function(file, rrs2, format, group, easyOptions, doRQA) {
 #' @importFrom nonlinearTseries rqa
 easyNonLinearAnalysis <-
   function(format, files, groups, paths, easyOptions, doRQA, ...) {
-    # Compute all nonlinear statistics but RQA in parallel using %dopar%.
-    # RQA is avoided due to its high memory consumption
-    resultsDataFrame =
-      foreach(
+    opts <- NULL
+    if (easyOptions$verbose) {
+      opts <- list("progress" = updateProgressFactory("Non-linear analysis", files))
+    }
+    resultsDataFrame <-  foreach(
       file = files,
+      itcounter = seq_along(files),
       group = groups,
       path = paths,
       .combine = rbind,
-      # .export = c("prepareAnalysis", "easyCall",
-      #             "nltsFilter", "selectMaxEmbeddingDim", "tryRQA",
-      #             "findSmallRadius", "collectRQA", "collectResuls",
-      #             "tryTimeLagEstimation", "tryEmbeddingDim", "augmentCorrDimCalculations",
-      #             "tryCorrDimCalculations", "tryCorrDimEstimation", "tryCorrDim",
-      #             "trySampleEntropy", "trySampleEntropyCalculations",
-      #             "trySampleEntropyEstimation", "tryLyapunov",
-      #             "tryLyapunovCalculations", "tryLyapunovEstimation",
-      #             "nlaSingleFile"
-      # ),
-      # .packages = "RHRV",
-      .errorhandling = "pass"
+      .errorhandling = "pass",
+      .options.snow = opts
     ) %dopar% {
-      suppressPackageStartupMessages(library("RHRV", character.only = TRUE, warn.conflicts = FALSE))
+      suppressWarnings(
+        suppressPackageStartupMessages(
+          library("RHRV", character.only = TRUE, warn.conflicts = FALSE)
+        )
+      )
       fileResults <- nlaSingleFile(file, path, format, group, easyOptions, doRQA)
+      if (easyOptions$verbose && !easyOptions$parallel) {
+        opts$progress(itcounter)
+      }
       fileResults
     } # end of %dopar%
     resultsDataFrame

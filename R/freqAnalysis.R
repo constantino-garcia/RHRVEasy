@@ -4,16 +4,26 @@
 #' @importFrom RHRV InterpolateNIHR CalculatePSD CalculateEnergyInPSDBands
 easyFreqAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
+    opts <- NULL
+    if (easyOptions$verbose) {
+      opts <- list("progress" = updateProgressFactory("Freq analysis", files))
+    }
     dataFrame <- foreach(
       file = files,
+      itcounter = seq_along(files),
       group = groups,
       path = paths,
       .combine = rbind.data.frame,
       .export = c("prepareAnalysis", "easyCall"),
       # .packages = "RHRV",
-      .errorhandling = "pass"
+      .errorhandling = "pass",
+      .options.snow = opts
     ) %dopar% {
-      suppressPackageStartupMessages(library("RHRV", character.only = TRUE, warn.conflicts = FALSE))
+      suppressWarnings(
+        suppressPackageStartupMessages(
+          library("RHRV", character.only = TRUE, warn.conflicts = FALSE)
+        )
+      )
       hrv.data <- prepareAnalysis(file = file, rrs = path, format = format,
                                     easyOptions = easyOptions)
       hrv.data <- withCallingHandlers(
@@ -35,6 +45,9 @@ easyFreqAnalysis <-
       x1 <- easyCall(hrv.data, CalculateEnergyInPSDBands, ...)
       names(x1) <- c("ULF", "VLF", "LF", "HF")
       row_list <- c(list("file" = file), x1, list("group" = group))
+      if (easyOptions$verbose && !easyOptions$parallel) {
+        opts$progress(itcounter)
+      }
       as.data.frame(row_list)
     }
     dataFrame
@@ -45,16 +58,25 @@ easyFreqAnalysis <-
 #' @importFrom RHRV InterpolateNIHR CalculatePowerBand
 easyWaveletAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
+    opts <- NULL
+    if (easyOptions$verbose) {
+      opts <- list("progress" = updateProgressFactory("Wavelet analysis", files))
+    }
     freqResults <- foreach(
       file = files,
+      itcounter = seq_along(files),
       group = groups,
       path = paths,
       .combine = rbind.data.frame,
       .export = c("prepareAnalysis", "easyCall"),
-      # .packages = "RHRV",
-      .errorhandling = "pass"
+      .errorhandling = "pass",
+      .options.snow = opts
     ) %dopar% {
-      suppressPackageStartupMessages(library("RHRV", character.only = TRUE, warn.conflicts = FALSE))
+      suppressWarnings(
+        suppressPackageStartupMessages(
+          library("RHRV", character.only = TRUE, warn.conflicts = FALSE)
+        )
+      )
       hrv.data <- prepareAnalysis(file = file, rrs = path, format = format, easyOptions = easyOptions)
       hrv.data <- withCallingHandlers(
         {
@@ -71,20 +93,25 @@ easyWaveletAnalysis <-
       hrv.data$HR[zero_indexes] <- hr_median
 
       hrv.data <- easyCall(hrv.data, CreateFreqAnalysis, ...)
-      hrv.data <- SetVerbose(hrv.data, easyOptions$verbose)
+      hrv.data <- SetVerbose(hrv.data, FALSE) # Set to False to avoid clutter
       hrv.data <- easyCall(hrv.data, CalculatePowerBand, ...)
 
       index <- length(hrv.data$FreqAnalysis)
       resultsWavelet <- hrv.data$FreqAnalysis[[index]]
       resultsWavelet$file <- file
-      resultsWavelet$HRV <- NULL
       resultsWavelet$ULF <- sum(hrv.data$FreqAnalysis[[index]]$ULF)
       resultsWavelet$VLF <- sum(hrv.data$FreqAnalysis[[index]]$VLF)
       resultsWavelet$LF <- sum(hrv.data$FreqAnalysis[[index]]$LF)
       resultsWavelet$HF <- sum(hrv.data$FreqAnalysis[[index]]$HF)
-      resultsWavelet$LFHF <- NULL
-      resultsWavelet$Time <- NULL
+      resultsWavelet[
+        c("HRV", "LFHF", "Time", "wavelet", "bandtolerance", "depth", "type",
+          paste0(c("ULF", "VLF", "LF", "HF"), rep(c("min", "max"), each = 4))
+        )
+      ] <- NULL
       row_list <- c(resultsWavelet, list("group" = group))
+      if (easyOptions$verbose && !easyOptions$parallel) {
+        opts$progress(itcounter)
+      }
       as.data.frame(row_list)
     }
     freqResults

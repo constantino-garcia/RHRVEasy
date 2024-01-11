@@ -1,15 +1,14 @@
 devtools::load_all(".")
-# library("RHRVEasy")
-
-# debugonce(nlaSingleFile)
-debugonce(RHRVEasy)
+#library("RHRVEasy")
+rm(anal)
 anal <- RHRVEasy(
   folders = c("/data/easy/current_chf2/", "/data/easy/current_normal2/"),
   nonLinear = TRUE,
-  doRQA = FALSE,
+  doRQA = TRUE,
   verbose = TRUE,
-  nJobs = 1
+  nJobs = 2,
+  typeAnalysis = "wavelet"
 )
 
-anal
-gg
+print(anal$HRVIndices)
+
