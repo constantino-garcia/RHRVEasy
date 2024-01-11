@@ -1,8 +1,8 @@
 #' @export
 RHRVEasy <-
   function(folders,
-           correction = TRUE,
-           correctionMethod = "bonferroni",
+           correctionMethod = c("bonferroni", "holm", "hochberg", "hommel", "BH",
+                                "BY", "fdr", "none"),
            verbose = FALSE,
            format = "RR",
            typeAnalysis = c('fourier', 'wavelet'),
@@ -14,9 +14,7 @@ RHRVEasy <-
            ...) {
 
     typeAnalysis <- match.arg(typeAnalysis)
-    if (!correction) {
-      correctionMethod = NULL
-    }
+    correctionMethod <- match.arg(correctionMethod)
     easyOptions <- buildEasyOptions(
       verbose = verbose,
       significance = significance,

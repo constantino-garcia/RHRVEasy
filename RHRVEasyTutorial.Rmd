@@ -17,8 +17,7 @@ This tutorial uses the recordings of the [Normal Sinus Rhythm RR Interval Databa
 
 To ilustrate how to work with more than two experimental groups, half of the recordings from both databases were randomly selected. The NSR_HALF_DB database is made up of 24 recordings randomly chosen from the 58 of the NSR database. The CHF_HALF_DB database is made up of 14 recordings chosen from the 28 of the CHF database. The four databases are available in the [RHRVEasy GitHub repository](https://github.com/sofiabardaji/RHRVEasy). To run this tutorial, the following four variables must contain the folder of the local machine where the files of each of these databases are:
 ```{r}
-#@TODO REPLACE_WITH_LOCAL_PATH
-base_path = "rrs/" # "C:\\rrs\\RHRVEasy\\rrs"
+base_path = "rrs/" 
 NSR_DB = file.path(base_path, "normal")
 CHF_DB = file.path(base_path, "chf")
 NSR_HALF_DB = file.path(base_path, "normal_half")
@@ -69,10 +68,10 @@ RHRVEasy_obj_wavelet
 
 # 2. Correction of the significance level
 
-Given that multiple statistical tests are performed on several HRV indices, a correction of the significance level should be applied. The Bonferroni method is used by default (@TODO ¿usar fdr?). This behavior can be overridden with the parameter `correctionMethod`. The possible values of this parameter besides `bonferroni` are `holm`, `hochberg`, `hommel`, `BH` (Benjamini & Hochberg), `fdr` (false discovery rate), `BY` (Benjamini & Yekutieli), and `none`. The boolean parameter `correction` can also be used to indicate that no correction is to be made; if the value of this parameter is TRUE be the Bonferroni method will be used.
+Given that multiple statistical tests are performed on several HRV indices, a correction of the significance level should be applied. The Bonferroni method is used by default (@TODO ¿usar fdr?). This behavior can be overridden with the parameter `correctionMethod`. The possible values of this parameter besides `bonferroni` are `holm`, `hochberg`, `hommel`, `BH` (Benjamini & Hochberg), `fdr` (false discovery rate), `BY` (Benjamini & Yekutieli), and `none` (indicating that no correction is to be made).
 
 ```{r}
-RHRVEasy_obj_no_correction = RHRVEasy(folders = c(NSR_DB, CHF_DB), correction = FALSE)
+RHRVEasy_obj_no_correction = RHRVEasy(folders = c(NSR_DB, CHF_DB), correctionMethod = 'none')
 RHRVEasy_obj_fdr = RHRVEasy(folders = c(NSR_DB, CHF_DB), correctionMethod = 'fdr')
 #Let us compare the pvalues obtained with different correction methods 
 head(cbind(RHRVEasy_obj_no_correction$pValues, RHRVEasy_obj_fdr$pValues, RHRVEasy_obj$pValues))

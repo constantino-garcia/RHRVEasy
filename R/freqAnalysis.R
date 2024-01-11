@@ -41,7 +41,6 @@ easyFreqAnalysis <-
       hrv.data$HR[zero_indexes] <- hr_median
       hrv.data <- easyCall(hrv.data, CreateFreqAnalysis, ...)
       hrv.data <- easyCall(hrv.data, CalculatePSD, doPlot = F, ...)
-      # TODO: simplify
       x1 <- easyCall(hrv.data, CalculateEnergyInPSDBands, ...)
       names(x1) <- c("ULF", "VLF", "LF", "HF")
       row_list <- c(list("file" = file), x1, list("group" = group))

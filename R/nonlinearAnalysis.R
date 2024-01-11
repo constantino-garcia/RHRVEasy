@@ -1,5 +1,7 @@
 # Select the range for the computation of nonlinear statistics
-selectMaxEmbeddingDim <- function(embeddingDim) {embeddingDim + 2}
+selectMaxEmbeddingDim <- function(embeddingDim) {
+  embeddingDim + 2
+}
 
 tryRQA <- function(hrv.data, file, config) {
   hrv.data = tryCatch({
@@ -205,7 +207,6 @@ tryEmbeddingDim <- function(hrv.data, file, config, embeddingDimDefault = 15) {
       NA
     }
   )
-  # TODO: unifiy is.na with 0
   if (is.na(embeddingDim) || (embeddingDim == 0)) {
     embeddingDim = embeddingDimDefault
     warning(paste(
@@ -310,9 +311,9 @@ tryCorrDimEstimation <- function(hrv.data, file, config) {
 
     filteredCd = nltsFilter(cd, threshold = 0.99)
     cdScalingRegion =
-      estimate_scaling_region(filteredCd,
-                              numberOfLinearRegions = 3,
-                              doPlot = config$showNonLinearPlots)
+      estimateScalingRegion(filteredCd,
+                            numberOfLinearRegions = 3,
+                            doPlot = config$showNonLinearPlots)
     if (!cdScalingRegion$reliable) {
       warning(
         paste(
@@ -364,7 +365,7 @@ tryCorrDimEstimation <- function(hrv.data, file, config) {
         "Setting to NA"
       )
     )
-    hrv.data$NonLinearAnalysis[[1]]$correlation$statistic = NA # TODO
+    hrv.data$NonLinearAnalysis[[1]]$correlation$statistic = NA
     hrv.data
   })
   hrv.data
@@ -464,7 +465,7 @@ tryLyapunovEstimation <- function(hrv.data, file, config) {
   hrv.data = tryCatch({
     lyapComp = hrv.data$NonLinearAnalysis[[1]]$lyapunov$computations
     stopifnot(!is.null(lyapComp))
-    lyapunovScalingRegion = estimate_scaling_region(lyapComp)
+    lyapunovScalingRegion = estimateScalingRegion(lyapComp)
     hrv.data = with(
       config,
       EstimateMaxLyapunov(
