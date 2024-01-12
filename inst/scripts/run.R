@@ -3,12 +3,15 @@ devtools::load_all(".")
 rm(anal)
 anal <- RHRVEasy(
   folders = c("/data/easy/current_chf2/", "/data/easy/current_normal2/"),
-  nonLinear = TRUE,
+  nonLinear = FALSE,
   doRQA = TRUE,
   verbose = TRUE,
   nJobs = 2,
   typeAnalysis = "wavelet"
 )
 
+print(anal)
+
 print(anal$HRVIndices)
+anal$stats$adj.p.value <- anal$stats$adj.p.value/20
 

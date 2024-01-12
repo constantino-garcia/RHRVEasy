@@ -69,12 +69,12 @@ computeEasyCIs <- function(easyObject, test) {
   cis
 }
 
-printGroupCI <- function(cis, group, digits) {
+printGroupCI <- function(cis, group, digits, nspaces = 2) {
   conf <- attr(cis[[group]], "conf.level")
   method <- attr(cis[[group]], "method")
   cat(
     sep = "",
-    "\t", group, "'s ", conf * 100, "% CI of the mean: (",
+    rep(" ", nspaces), group, "'s ", conf * 100, "% CI of the mean: (",
     round(cis[[group]][1], digits = digits), ", ",
     round(cis[[group]][2], digits = digits), ")",
     " [", method,"]\n"
@@ -90,16 +90,17 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
       "No significant differences were found between groups\n"
     )
   } else {
+    adjMethod <- ifelse(easyOptions$method == "none", "", easyOptions$method)
     junk <- foreach(test = iterators::iter(significantx, by = "row")) %do% {
       # Compute mean CIS using Normal CIs or Boostrapped CIs depending on the
       # data distribution
       cis <- computeEasyCIs(x, test)
       # Actual printing happens here
       with(test, {
-        method <- ifelse(easyOptions$method == "none", "", easyOptions$method)
         cat(
           sep = "",
-          "Significant differences in ",  HRVIndex, " (", method," p-value = ", format(adj.p.value, digits), "):\n"
+          "Significant differences in ",  HRVIndex, " (", method, ", ",
+          adjMethod," p-value = ", format(adj.p.value, digits), "):\n"
         )
       })
       if (length(cis) == 2) {
@@ -108,7 +109,27 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
         }
         cat("\n")
       } else {
-          # TODO
+        isSignificantPosthoc <- test$pairwise[[1]]$adj.p.value < easyOptions$significance
+        if (!any(isSignificantPosthoc)) {
+          cat("\tNo significant differences were found between groups in post-hoc tests\n")
+        } else {
+          significantPosthocs <- test$pairwise[[1]][isSignificantPosthoc, ]
+          for (prow in seq_along(significantPosthocs$group1)) {
+            group1 <- significantPosthocs[prow, "group1"][[1]]
+            group2 <- significantPosthocs[prow, "group2"][[1]]
+            method <- significantPosthocs[prow, "method"][[1]]
+            adj.p.value <- significantPosthocs[prow, "adj.p.value"][[1]]
+            cat(
+              sep = "",
+              "\t Significant differences in the post-hoc comparison of",
+                group1, " and ", group2,
+                " (", method, ", ", adjMethod, " p-value = ", format(adj.p.value, digits), "):\n"
+            )
+            printGroupCI(cis, group1, digits, nspaces = 4)
+            printGroupCI(cis, group2, digits, nspaces = 4)
+            cat("\n")
+          }
+        }
       }
     }
   }
