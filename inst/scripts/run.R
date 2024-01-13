@@ -3,6 +3,7 @@ devtools::load_all(".")
 rm(anal)
 anal <- RHRVEasy(
   folders = c("/data/easy/current_chf2/", "/data/easy/current_normal2/"),
+  correctionMethod = "fdr",
   nonLinear = FALSE,
   doRQA = TRUE,
   verbose = TRUE,

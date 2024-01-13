@@ -44,24 +44,23 @@ RHRVEasy <-
   }
 
 
-computeEasyCIs <- function(easyObject, test) {
+computeEasyCIs <- function(easyObject, test, confLevel) {
   grouped_data <- split(easyObject$HRVIndices[[test$HRVIndex]], easyObject$HRVIndices$group)
   if (test$method == "ANOVA") {
     cis <- lapply(grouped_data, \(x) {
-      ci <- t.test(x)$conf.int
+      ci <- t.test(x, conf.level = confLevel)$conf.int
       attr(ci, "method") <- "Normal CI without adjustment"
       ci
     })
   } else {
     cis <- lapply(grouped_data, \(x) {
-      conf <- 0.95
       ci <- boot::boot.ci(
-        boot::boot(x, statistic = \(x, i) mean(x[i]), R = 1000),
+        boot::boot(x[!is.na(x)], statistic = \(x, i) mean(x[i]), R = 1000),
         type = "basic",
-        conf = conf
+        conf = confLevel
       )
       ci <- ci$basic[, 4:5]
-      attr(ci, "conf.level") <- conf
+      attr(ci, "conf.level") <- confLevel
       attr(ci, "method") <- "Boostrapped CI without adjustment"
       ci
     })
@@ -83,6 +82,8 @@ printGroupCI <- function(cis, group, digits, nspaces = 2) {
 
 #' @export
 print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
+  firstLevelSpaces <- 2
+  nPosthocSpaces <- 4
   easyOptions <- attr(x, "easyOptions")
   significantx <- x$stats[x$stats$adj.p.value < easyOptions$significance, ]
   if (is.null(significantx) || nrow(significantx) == 0) {
@@ -91,10 +92,12 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
     )
   } else {
     adjMethod <- ifelse(easyOptions$method == "none", "", easyOptions$method)
-    junk <- foreach(test = iterators::iter(significantx, by = "row")) %do% {
+    for (sigRow in seq_len(nrow(significantx))) {
+      test <- significantx[sigRow, ]
       # Compute mean CIS using Normal CIs or Boostrapped CIs depending on the
       # data distribution
-      cis <- computeEasyCIs(x, test)
+      print(easyOptions$significance)
+      cis <- computeEasyCIs(x, test, confLevel = 1 - easyOptions$significance)
       # Actual printing happens here
       with(test, {
         cat(
@@ -105,13 +108,15 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
       })
       if (length(cis) == 2) {
         for (group in names(cis)) {
-          printGroupCI(cis, group, digits)
+          printGroupCI(cis, group, digits, nspaces = firstLevelSpaces)
         }
-        cat("\n")
       } else {
         isSignificantPosthoc <- test$pairwise[[1]]$adj.p.value < easyOptions$significance
         if (!any(isSignificantPosthoc)) {
-          cat("\tNo significant differences were found between groups in post-hoc tests\n")
+          cat(
+            rep(" ", firstLevelSpaces),
+            "No significant differences were found between groups in post-hoc tests\n"
+          )
         } else {
           significantPosthocs <- test$pairwise[[1]][isSignificantPosthoc, ]
           for (prow in seq_along(significantPosthocs$group1)) {
@@ -121,16 +126,17 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
             adj.p.value <- significantPosthocs[prow, "adj.p.value"][[1]]
             cat(
               sep = "",
-              "\t Significant differences in the post-hoc comparison of",
+              rep(" ", firstLevelSpaces),
+              "Significant differences in the post-hoc comparison of ",
                 group1, " and ", group2,
                 " (", method, ", ", adjMethod, " p-value = ", format(adj.p.value, digits), "):\n"
             )
-            printGroupCI(cis, group1, digits, nspaces = 4)
-            printGroupCI(cis, group2, digits, nspaces = 4)
-            cat("\n")
+            printGroupCI(cis, group1, digits, nspaces = nPosthocSpaces)
+            printGroupCI(cis, group2, digits, nspaces = nPosthocSpaces)
           }
         }
       }
+      cat("\n")
     }
   }
   invisible(x)
