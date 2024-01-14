@@ -8,7 +8,8 @@ anal <- RHRVEasy(
   doRQA = TRUE,
   verbose = TRUE,
   nJobs = 2,
-  typeAnalysis = "wavelet"
+  typeAnalysis = "wavelet",
+  saveHRVIndicesInPath = NULL
 )
 
 print(anal)

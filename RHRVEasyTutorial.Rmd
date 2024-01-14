@@ -87,16 +87,16 @@ RHRVEasy_obj_001
 
 # 3. Saving the indices to an Excel spreadsheet
 
-If the argument `saveHRVindexesInPath` is specified when invoking the function `RHRVEasy`, an Excel spreadsheet with all the HRV indices calculated for each recording will be created in the path specified specified in this parameter. The name of the spreadsheet generated is "<group 1 name> vs <group 2 name> .xlsx":
+If the argument `saveHRVindicesInPath` is specified when invoking the function `RHRVEasy`, an Excel spreadsheet with all the HRV indices calculated for each recording will be created in the path specified specified in this parameter. The name of the spreadsheet generated is "<group 1 name> vs <group 2 name> .xlsx":
 
 ```{r}
-RHRVEasy_obj = RHRVEasy(folders =c(NSR_DB, CHF_DB), saveHRVindexesInPath = spreadsheet_path)
+RHRVEasy_obj = RHRVEasy(folders =c(NSR_DB, CHF_DB), saveHRVindicesInPath = spreadsheet_path)
 ```
 
-This spreadsheet can also be generated from the object returned by `RHRVEasy` by calling the function `saveHRVindexes`.
+This spreadsheet can also be generated from the object returned by `RHRVEasy` by calling the function `saveHRVindices`.
 
 ```{r}
-saveHRVindexes (RHRVEasy_obj, saveHRVindexesInPath = spreadsheet_path)
+saveHRVindices (RHRVEasy_obj, saveHRVindicesInPath = spreadsheet_path)
 ```
 
 # 4. Comparing more than two experimental groups
@@ -109,7 +109,7 @@ RHRVEasy_obj_four_groups = RHRVEasy(folders =c(NSR_DB, CHF_DB, NSR_HALF_DB, CHF_
 RHRVEasy_obj_four_groups
 #Let us save the indices
 #@TODO LF Aparece como significativo en DUNN Pero no en ANOVA!!!!
-saveHRVindexes (RHRVEasy_obj_four_groups, saveHRVindexesInPath = spreadsheet_path)
+saveHRVindices (RHRVEasy_obj_four_groups, saveHRVindicesInPath = spreadsheet_path)
 ```
 
 
@@ -136,5 +136,5 @@ The calculation of the nonlinear indices requires considerable computational res
 # RHRVEasy_obj_nonLinear
 # head(RHRVEasy_obj_nonLinear$NonLinearAnalysis)
 # #Let us save the indices
-# saveHRVindexes (RHRVEasy_obj_nonLinear, saveHRVindexesInPath = spreadsheet_path)
+# saveHRVindices (RHRVEasy_obj_nonLinear, saveHRVindicesInPath = spreadsheet_path)
 ```

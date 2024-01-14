@@ -36,18 +36,18 @@ easyFreqAnalysis <-
           invokeRestart("muffleWarning")
         }
       )
-      zero_indexes <- which(hrv.data$HR == 0)
-      hr_median <- median(hrv.data$HR[-zero_indexes])
-      hrv.data$HR[zero_indexes] <- hr_median
+      zeroIndices <- which(hrv.data$HR == 0)
+      hrMedian <- median(hrv.data$HR[-zeroIndices])
+      hrv.data$HR[zeroIndices] <- hrMedian
       hrv.data <- easyCall(hrv.data, CreateFreqAnalysis, ...)
       hrv.data <- easyCall(hrv.data, CalculatePSD, doPlot = F, ...)
       x1 <- easyCall(hrv.data, CalculateEnergyInPSDBands, ...)
       names(x1) <- c("ULF", "VLF", "LF", "HF")
-      row_list <- c(list("file" = file), x1, list("group" = group))
+      rowList <- c(list("file" = file), x1, list("group" = group))
       if (easyOptions$verbose && !easyOptions$parallel) {
         opts$progress(itcounter)
       }
-      as.data.frame(row_list)
+      as.data.frame(rowList)
     }
     dataFrame
   }
@@ -87,9 +87,9 @@ easyWaveletAnalysis <-
           invokeRestart("muffleWarning")
         }
       )
-      zero_indexes <- which(hrv.data$HR == 0)
-      hr_median <- median(hrv.data$HR[-zero_indexes])
-      hrv.data$HR[zero_indexes] <- hr_median
+      zeroIndices <- which(hrv.data$HR == 0)
+      hrMedian <- median(hrv.data$HR[-zeroIndices])
+      hrv.data$HR[zeroIndices] <- hrMedian
 
       hrv.data <- easyCall(hrv.data, CreateFreqAnalysis, ...)
       hrv.data <- SetVerbose(hrv.data, FALSE) # Set to False to avoid clutter
@@ -107,11 +107,11 @@ easyWaveletAnalysis <-
           paste0(c("ULF", "VLF", "LF", "HF"), rep(c("min", "max"), each = 4))
         )
       ] <- NULL
-      row_list <- c(resultsWavelet, list("group" = group))
+      rowList <- c(resultsWavelet, list("group" = group))
       if (easyOptions$verbose && !easyOptions$parallel) {
         opts$progress(itcounter)
       }
-      as.data.frame(row_list)
+      as.data.frame(rowList)
     }
     freqResults
   }

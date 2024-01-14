@@ -73,11 +73,11 @@ easyCall <- function(hrv.data, mf, ...) {
 #' @importFrom parallel makeCluster
 #' @importFrom doSNOW registerDoSNOW
 prepareEasyCluster <- function(nJobs, verbose) {
-  n_cores <- parallel::detectCores(logical = FALSE)
+  nCores <- parallel::detectCores(logical = FALSE)
   if (nJobs <= 0) {
-    nJobs <- n_cores
-  } else if (nJobs > n_cores) {
-    nJobs <- n_cores
+    nJobs <- nCores
+  } else if (nJobs > nCores) {
+    nJobs <- nCores
   }
   if (nJobs > 1) {
     cl <- parallel::makeCluster(nJobs, outfile="") # using outfile = "" may be useful for debugging

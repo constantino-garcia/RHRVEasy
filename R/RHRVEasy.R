@@ -9,8 +9,8 @@ RHRVEasy <-
            significance = 0.05,
            nonLinear = FALSE,
            doRQA = FALSE,   # ignored if nonLinear = FALSE
-           saveHRVindexesInPath = NULL,
            nJobs = 1,
+           saveHRVIndicesInPath = NULL,
            ...) {
 
     typeAnalysis <- match.arg(typeAnalysis)
@@ -40,20 +40,45 @@ RHRVEasy <-
     results <- list("HRVIndices" = HRVIndices, "stats" = pVals)
     class(results) <- "RHRVEasyResult"
     attr(results, "easyOptions") <- easyOptions
+
+    if (!is.null(saveHRVIndicesInPath)) {
+      saveHRVIndices(results, saveHRVIndicesInPath)
+    }
+
     results
   }
 
+#' @importFrom writexl write_xlsx
+#' @export
+saveHRVIndices <- function(results, saveHRVIndicesInPath = ".") {
+  tryCatch({
+    filename <- file.path(
+      saveHRVIndicesInPath,
+      paste0(
+        paste(unique(results$HRVIndices$group), collapse = "_Vs_"),
+        ".xlsx"
+      )
+    )
+    write_xlsx(results$HRVIndices, filename)
+  },
+  error = function(e) {
+    message(paste0("Could not save indices in path '", saveHRVIndicesInPath, "'"))
+    message(e)
+  })
+}
+
+
 
 computeEasyCIs <- function(easyObject, test, confLevel) {
-  grouped_data <- split(easyObject$HRVIndices[[test$HRVIndex]], easyObject$HRVIndices$group)
+  groupedData <- split(easyObject$HRVIndices[[test$HRVIndex]], easyObject$HRVIndices$group)
   if (test$method == "ANOVA") {
-    cis <- lapply(grouped_data, \(x) {
+    cis <- lapply(groupedData, \(x) {
       ci <- t.test(x, conf.level = confLevel)$conf.int
       attr(ci, "method") <- "Normal CI without adjustment"
       ci
     })
   } else {
-    cis <- lapply(grouped_data, \(x) {
+    cis <- lapply(groupedData, \(x) {
       ci <- boot::boot.ci(
         boot::boot(x[!is.na(x)], statistic = \(x, i) mean(x[i]), R = 1000),
         type = "basic",
@@ -96,7 +121,6 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
       test <- significantx[sigRow, ]
       # Compute mean CIS using Normal CIs or Boostrapped CIs depending on the
       # data distribution
-      print(easyOptions$significance)
       cis <- computeEasyCIs(x, test, confLevel = 1 - easyOptions$significance)
       # Actual printing happens here
       with(test, {
@@ -244,4 +268,5 @@ calculateHRVIndices <- function(
     }
     allResults
   }
+
 
