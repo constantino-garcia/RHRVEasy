@@ -27,7 +27,7 @@ easyTimeAnalysis <-
         hrv.data <- easyCall(hrv.data, CreateTimeAnalysis, ...)
         results <- hrv.data$TimeAnalysis[[1]]
         results$size <- NULL
-        row_list <- c(
+        rowList <- c(
           list("file" = file),
           list("group" = group),
           results
@@ -35,7 +35,7 @@ easyTimeAnalysis <-
         if (easyOptions$verbose && !easyOptions$parallel) {
           opts$progress(itcounter)
         }
-        as.data.frame(row_list)
+        as.data.frame(rowList)
       }
     })
     dataFrame
