@@ -1,3 +1,11 @@
-# History files
 .Rhistory
 .Rproj.user
+.RData
+
+RRData/chf
+RRData/chf_half 
+RRData/normal 
+RRData/normal_half
+
+tmp/
+*.xlsx
