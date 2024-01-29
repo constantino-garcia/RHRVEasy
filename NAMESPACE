@@ -2,6 +2,7 @@
 
 S3method(print,RHRVEasyResult)
 export(RHRVEasy)
+export(RHRVEasyStats)
 export(saveHRVIndices)
 import(progress)
 importFrom(PMCMRplus,kwAllPairsDunnTest)

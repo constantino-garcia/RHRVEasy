@@ -37,9 +37,7 @@ RHRVEasy <-
     )
 
     pVals <- statsAnalysis(HRVIndices, easyOptions)
-    results <- list("HRVIndices" = HRVIndices, "stats" = pVals)
-    class(results) <- "RHRVEasyResult"
-    attr(results, "easyOptions") <- easyOptions
+    results <- RHRVEasyResult(HRVIndices, pVals, easyOptions)
 
     if (!is.null(saveHRVIndicesInPath)) {
       saveHRVIndices(results, saveHRVIndicesInPath)
@@ -47,6 +45,33 @@ RHRVEasy <-
 
     results
   }
+
+RHRVEasyResult <- function(HRVIndices, pVals, easyOptions) {
+  results <- list("HRVIndices" = HRVIndices, "stats" = pVals)
+  class(results) <- "RHRVEasyResult"
+  attr(results, "easyOptions") <- easyOptions
+  results
+}
+
+#' @export
+RHRVEasyStats <- function(RHRVEasyResult,
+                          correctionMethod = c("bonferroni", "holm", "hochberg", "hommel", "BH",
+                                               "BY", "fdr", "none"),
+                          significance = 0.05) {
+  if (!inherits(RHRVEasyResult, "RHRVEasyResult")) {
+    stop("RHRVEasyResult should be a 'RHRVEasyResult' object, as returned by 'RHRVEasy()'")
+  }
+  correctionMethod <- match.arg(correctionMethod)
+  stopifnot((significance > 0) && (significance < 1))
+  easyOptions <- attr(easyAnalysis, "easyOptions")
+  easyOptions$method <- correctionMethod
+  easyOptions$significance <- significance
+  HRVIndices <- easyAnalysis$HRVIndices
+  pVals <- statsAnalysis(HRVIndices, easyOptions)
+  RHRVEasyResult(HRVIndices, pVals, easyOptions)
+}
+
+
 
 #' @importFrom writexl write_xlsx
 #' @export
