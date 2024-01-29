@@ -2,3 +2,5 @@
 ^inst/scripts$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^RRData/
+^RHRVEasyTutorial.Rmd
