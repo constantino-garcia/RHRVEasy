@@ -397,8 +397,10 @@ recordings chosen from the 28 of the CHF database. The four databases
 are available in the <a href="https://github.com/constantino-garcia/RHRVEasy">RHRVEasy GitHub
 repository</a>. To run this tutorial, the following four variables must
 contain the folder of the local machine where the files of each of these
-databases are:</p>
-<pre class="r"><code>basePath = &quot;RRData/&quot; 
+databases are</p>
+<pre class="r"><code>library(&quot;RHRVEasy&quot;)
+
+basePath = &quot;RRData/&quot; 
 NSR_DB = file.path(basePath, &quot;normal&quot;)
 CHF_DB = file.path(basePath, &quot;chf&quot;)
 NSR_HALF_DB = file.path(basePath, &quot;normal_half&quot;)
@@ -425,42 +427,41 @@ for the NSR_DB and CHF_DB databases, and and performs a statistical
 comparison of each index correcting the significance level with the
 Bonferroni method. Note the use of the <code>nJobs</code> to use several
 cores and parallelize the computations.</p>
-<pre class="r"><code>library(&quot;RHRVEasy&quot;)
-easyAnalysis = RHRVEasy(folders = c(NSR_DB, CHF_DB), nJobs = -1)</code></pre>
+<pre class="r"><code>easyAnalysis = RHRVEasy(folders = c(NSR_DB, CHF_DB), nJobs = -1)</code></pre>
 <p>When the returned object is displayed in the console, it shows which
 indices present statistically significant differences:</p>
 <pre class="r"><code>print(easyAnalysis)</code></pre>
 <pre><code>## Significant differences in SDNN (Kruskal-Wallis rank sum test, bonferroni p-value = 1.117154e-07):
-##   chf&#39;s mean95% CI: (61.62755, 94.46437) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (131.5544, 148.2043) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (63.0561, 92.59621) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (131.851, 148.7659) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in SDANN (Kruskal-Wallis rank sum test, bonferroni p-value = 3.799696e-07):
-##   chf&#39;s mean95% CI: (48.85121, 81.27901) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (121.1813, 138.5317) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (47.92118, 80.41882) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (120.6496, 138.2731) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in SDNNIDX (Kruskal-Wallis rank sum test, bonferroni p-value = 0.01426098):
-##   chf&#39;s mean95% CI: (29.84815, 47.83909) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (46.36135, 54.68625) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (29.62375, 47.79535) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (46.91484, 54.40014) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in IRRR (Kruskal-Wallis rank sum test, bonferroni p-value = 1.492754e-07):
-##   chf&#39;s mean95% CI: (77.86245, 124.7306) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (188.2271, 216.4352) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (78.13184, 123.1074) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (186.2053, 216.4315) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in TINN (Kruskal-Wallis rank sum test, bonferroni p-value = 1.452872e-06):
-##   chf&#39;s mean95% CI: (237.4377, 371.108) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (512.019, 585.3093) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (246.4746, 375.0049) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (513.6919, 586.3119) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in HRVi (Kruskal-Wallis rank sum test, bonferroni p-value = 1.452872e-06):
-##   chf&#39;s mean95% CI: (15.90914, 23.89599) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (32.66123, 37.36507) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (15.95139, 23.98438) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (32.85439, 37.53765) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in ULF (Kruskal-Wallis rank sum test, bonferroni p-value = 1.74099e-08):
-##   chf&#39;s mean95% CI: (1184.831, 4335.485) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (7147.262, 9841.748) [Bootstrap CI without adjustment]
+##   chf&#39;s mean95% CI: (1140.113, 4373.228) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (6962.452, 9865.318) [Bootstrap CI without adjustment]
 ## 
 ## Significant differences in VLF (Kruskal-Wallis rank sum test, bonferroni p-value = 0.002535127):
-##   chf&#39;s mean95% CI: (46.41407, 133.9663) [Bootstrap CI without adjustment]
-##   normal&#39;s mean95% CI: (131.6152, 174.3235) [Bootstrap CI without adjustment]</code></pre>
+##   chf&#39;s mean95% CI: (47.22639, 136.2537) [Bootstrap CI without adjustment]
+##   normal&#39;s mean95% CI: (130.731, 174.1791) [Bootstrap CI without adjustment]</code></pre>
 <p>All computed indices, as well as all p-values resulting from all
 comparisons, are stored in <code>data.frames</code> contained in the
 object. Two different sets of p-values are available; the ones obtained

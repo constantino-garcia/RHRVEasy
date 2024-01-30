@@ -35,9 +35,11 @@ The CHF_HALF_DB database is made up of 14 recordings chosen from the 28 of the
 CHF database. The four databases are available in the [RHRVEasy GitHub 
 repository](https://github.com/constantino-garcia/RHRVEasy). To run this tutorial, 
 the following four variables must contain the folder of the local machine where 
-the files of each of these databases are:
+the files of each of these databases are
 
 ```{r}
+library("RHRVEasy")
+
 basePath = "RRData/" 
 NSR_DB = file.path(basePath, "normal")
 CHF_DB = file.path(basePath, "chf")
@@ -70,7 +72,6 @@ index correcting the significance level with the Bonferroni method. Note the
 use of the `nJobs` to use several cores and parallelize the computations.
 
 ```{r, results=FALSE, cache=TRUE}
-library("RHRVEasy")
 easyAnalysis = RHRVEasy(folders = c(NSR_DB, CHF_DB), nJobs = -1)
 ```
 
