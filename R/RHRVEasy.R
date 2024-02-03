@@ -63,10 +63,10 @@ RHRVEasyStats <- function(RHRVEasyResult,
   }
   correctionMethod <- match.arg(correctionMethod)
   stopifnot((significance > 0) && (significance < 1))
-  easyOptions <- attr(easyAnalysis, "easyOptions")
+  easyOptions <- attr(RHRVEasyResult, "easyOptions")
   easyOptions$method <- correctionMethod
   easyOptions$significance <- significance
-  HRVIndices <- easyAnalysis$HRVIndices
+  HRVIndices <- RHRVEasyResult$HRVIndices
   pVals <- statsAnalysis(HRVIndices, easyOptions)
   RHRVEasyResult(HRVIndices, pVals, easyOptions)
 }
