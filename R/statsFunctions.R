@@ -9,6 +9,8 @@
 #}
 
 
+#' @importFrom stats shapiro.test
+#' @importFrom stats ks.test
 tryNormalityCheck <- function(x) {
   pval <- tryCatch({
     if (length(x) >= 5000) {

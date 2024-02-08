@@ -94,6 +94,8 @@ saveHRVIndices <- function(results, saveHRVIndicesInPath = ".") {
 
 
 
+#' @importFrom boot boot.ci
+#' @importFrom boot boot
 computeEasyCIs <- function(easyObject, test, confLevel) {
   groupedData <- split(easyObject$HRVIndices[[test$HRVIndex]], easyObject$HRVIndices$group)
   if (test$method == "ANOVA") {
