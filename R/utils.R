@@ -63,6 +63,7 @@ prepareAnalysis <- function(file, rrs, format, easyOptions) {
 }
 
 #Calls an RHRV function with hrv.data after cleaning the parameters
+#' @importFrom plotrix clean.args
 easyCall <- function(hrv.data, mf, ...) {
   args.list <- plotrix::clean.args(list(...), mf)
   args.list$HRVData <- hrv.data

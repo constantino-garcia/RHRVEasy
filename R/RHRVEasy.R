@@ -54,19 +54,19 @@ RHRVEasyResult <- function(HRVIndices, pVals, easyOptions) {
 }
 
 #' @export
-RHRVEasyStats <- function(RHRVEasyResult,
+RHRVEasyStats <- function(RHRVEasyResultObject,
                           correctionMethod = c("bonferroni", "holm", "hochberg", "hommel", "BH",
                                                "BY", "fdr", "none"),
                           significance = 0.05) {
-  if (!inherits(RHRVEasyResult, "RHRVEasyResult")) {
-    stop("RHRVEasyResult should be a 'RHRVEasyResult' object, as returned by 'RHRVEasy()'")
+  if (!inherits(RHRVEasyResultObject, "RHRVEasyResult")) {
+    stop("RHRVEasyResultObject should be a 'RHRVEasyResult' object, as returned by 'RHRVEasy()'")
   }
   correctionMethod <- match.arg(correctionMethod)
   stopifnot((significance > 0) && (significance < 1))
-  easyOptions <- attr(RHRVEasyResult, "easyOptions")
+  easyOptions <- attr(RHRVEasyResultObject, "easyOptions")
   easyOptions$method <- correctionMethod
   easyOptions$significance <- significance
-  HRVIndices <- RHRVEasyResult$HRVIndices
+  HRVIndices <- RHRVEasyResultObject$HRVIndices
   pVals <- statsAnalysis(HRVIndices, easyOptions)
   RHRVEasyResult(HRVIndices, pVals, easyOptions)
 }
