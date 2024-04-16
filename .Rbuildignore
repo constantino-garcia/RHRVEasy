@@ -5,7 +5,7 @@
 ^RRData/
 ^RHRVEasyTutorial.Rmd
 ^tmp/
-^RHRVEasy/RHRVEasyTutorial_cache/
+^RHRVEasyTutorial_cache/
 ^LICENSE\.md$
 ^.*\.html$
 ^.*\.xlsx$
