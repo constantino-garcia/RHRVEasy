@@ -21,6 +21,7 @@ nltsFilter.corrDim <- function(x, threshold = 0.95) {
   x
 }
 
+#' @importFrom stats ksmooth median
 nltsFilter.maxLyapunov <- function(x, kernel = "normal", bandwidth = 2) {
   smoothedS <- apply(x$s.function, 1, function(sf, time, kernel, bandwidth) {
     ksmooth(time, sf, kernel, bandwidth)
@@ -45,6 +46,7 @@ nltsFilter.maxLyapunov <- function(x, kernel = "normal", bandwidth = 2) {
 }
 
 # Estimate local slopes using kernels -----------------------------------------
+#' @importFrom graphics lines
 estimateLocalSlopes <- function(y, x, bandwidth, kernel, doPlot = FALSE) {
 
   checkSegmentArguments(y, x)
@@ -86,6 +88,7 @@ estimateLocalSlopes <- function(y, x, bandwidth, kernel, doPlot = FALSE) {
 
 
 # estimate derivative using a kernel to smooth the result and avoid peaks
+#' @importFrom stats ksmooth
 easyDifferentiate <- function(y, x, kernel = c("normal","box"), bandwidth = 0.5){
   kernel <- match.arg(kernel)
   len <- length(y)
@@ -102,6 +105,7 @@ easyDifferentiate <- function(y, x, kernel = c("normal","box"), bandwidth = 0.5)
 
 # Run segmented but filtering the warning "No breakpoint estimated"
 #' @importFrom segmented segmented
+#' @importFrom stats lm
 doSegmentation <- function(data, initialValues) {
   handler <- function(w) {
     if (any(grepl("No breakpoint estimated", w, "\n"))) {
@@ -119,6 +123,8 @@ doSegmentation <- function(data, initialValues) {
 
 #  estimate the scaling regions  --------------------------------------
 
+#' @importFrom graphics abline points
+#' @importFrom stats lm coef
 segmentAndSelectBySlope <- function(y, x, initialValues, criterion = c("max", "min"),
                                    doPlot = FALSE) {
   criterion <- match.arg(criterion)
@@ -158,6 +164,7 @@ segmentAndSelectBySlope <- function(y, x, initialValues, criterion = c("max", "m
   range(scalingRegion)
 }
 
+#' @importFrom stats quantile
 estimateAllScalingRegions <- function(y, x, numberOfLinearRegions, initialValues,
                                criterion = c("max", "min")) {
   criterion <- match.arg(criterion)
@@ -196,6 +203,9 @@ estimateScalingRegion <- function(y, numberOfLinearRegions,
 # The initial breakPoints that the method requires can be specified by 'initialValues'.
 # If they are not specified, the method selects them automatically.
 # It must be noted that 'length(initialValues) + 1 = numberOfLinearRegions'.
+#' @importFrom nonlinearTseries plotLocalScalingExp
+#' @importFrom graphics abline
+#' @importFrom stats sd
 estimateScalingRegion.corrDim <- function(x, numberOfLinearRegions = 4,
                                            initialValues = NULL, doPlot = FALSE,
                                            bandwidth = NULL,

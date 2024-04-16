@@ -1,18 +1,49 @@
+#' Run a full HRV analysis including indices computation and statistical analysis
+#'
+#' @param folders A character vector with the paths to the folders containing
+#' the HRV files. Each folder should contain the HRV files of a group.
+#' @param correctionMethod The method to correct for multiple comparisons. Can
+#' be one of "bonferroni", "holm", "hochberg", "hommel", "BH", "BY", "fdr" and
+#' "none". Default is "bonferroni".
+#' @param verbose Logical. If TRUE, the function will show a progress bar and
+#' print additional information to the console.
+#' @param format The format of the HRV files. Can be one of "WFDB", "Ascii",
+#' "RR", "Polar", "Suunto", "EDFPlus" and "Ambit".
+#' @param typeAnalysis The type of frequency analysis to perform. Can be one of
+#' "fourier" or "wavelet".
+#' @param significance The significance level to use in the statistical
+#' analysis. By default, it is set to 0.05.
+#' @param nonLinear Logical. If TRUE, the function will compute non-linear
+#' indices. It should be noted that this process is computationally expensive.
+#' @param doRQA Logical. If TRUE, the function will compute Recurrence
+#' Quantification Analysis (RQA) indices. This parameter is ignored if
+#' `nonLinear` is set to FALSE.It should be noted that this process is
+#' computationally expensive.
+#' @param nJobs The number of parallel jobs to use. `nJobs <= 0` uses all cores
+#' available. By default, it is set to 1.
+#' @param saveHRVIndicesInPath The path where the HRV indices will be saved as
+#' an excel file. If NULL, the indices will not be saved. See [saveHRVIndices()]
+#' for more details.
+#' @param ... Additional arguments for the HRV analysis. For further details,
+#' see the `RHRV` package.
+#' @returns An object of class `RHRVEasyResult` containing the HRV indices
+#' (slot `$HRVIndices`) and the statistical analysis results (slot `$stats`)
 #' @export
 RHRVEasy <-
   function(folders,
-           correctionMethod = c("bonferroni", "holm", "hochberg", "hommel", "BH",
-                                "BY", "fdr", "none"),
+           correctionMethod = c(
+             "bonferroni", "holm", "hochberg", "hommel", "BH",
+             "BY", "fdr", "none"
+           ),
            verbose = FALSE,
            format = "RR",
-           typeAnalysis = c('fourier', 'wavelet'),
+           typeAnalysis = c("fourier", "wavelet"),
            significance = 0.05,
            nonLinear = FALSE,
-           doRQA = FALSE,   # ignored if nonLinear = FALSE
+           doRQA = FALSE, # ignored if nonLinear = FALSE
            nJobs = 1,
            saveHRVIndicesInPath = NULL,
            ...) {
-
     typeAnalysis <- match.arg(typeAnalysis)
     correctionMethod <- match.arg(correctionMethod)
     easyOptions <- buildEasyOptions(
@@ -53,10 +84,24 @@ RHRVEasyResult <- function(HRVIndices, pVals, easyOptions) {
   results
 }
 
+#' Rerun the statistical analysis from a previous `RHRVEasy()` call
+#'
+#' @param RHRVEasyResultObject An object of class `RHRVEasyResult` as returned
+#' by `RHRVEasy()`
+#' @param correctionMethod The method to correct for multiple comparisons. Can
+#' be one of "bonferroni", "holm", "hochberg", "hommel", "BH", "BY", "fdr" and
+#' "none". Default is "bonferroni".
+#' @param significance The significance level to use in the statistical
+#' analysis. By default, it is set to 0.05.
+#' @returns An object of class `RHRVEasyResult` containing the HRV indices
+#' (slot `$HRVIndices`) and the statistical analysis results (slot `$stats`)
+#' @seealso [RHRVEasy()]
 #' @export
 RHRVEasyStats <- function(RHRVEasyResultObject,
-                          correctionMethod = c("bonferroni", "holm", "hochberg", "hommel", "BH",
-                                               "BY", "fdr", "none"),
+                          correctionMethod = c(
+                            "bonferroni", "holm", "hochberg", "hommel", "BH",
+                            "BY", "fdr", "none"
+                          ),
                           significance = 0.05) {
   if (!inherits(RHRVEasyResultObject, "RHRVEasyResult")) {
     stop("RHRVEasyResultObject should be a 'RHRVEasyResult' object, as returned by 'RHRVEasy()'")
@@ -72,30 +117,39 @@ RHRVEasyStats <- function(RHRVEasyResultObject,
 }
 
 
-
+#' Save the HRV indices as an excel file
+#'
+#' @param RHRVEasyResultObject An object of class `RHRVEasyResult` as returned
+#' by `RHRVEasy()`
+#' @param saveHRVIndicesInPath The path where the HRV indices will be saved as
+#' an excel file. The name of the file is automatically created based on the
+#' groups being compared.
 #' @importFrom writexl write_xlsx
 #' @export
-saveHRVIndices <- function(results, saveHRVIndicesInPath = ".") {
-  tryCatch({
-    filename <- file.path(
-      saveHRVIndicesInPath,
-      paste0(
-        paste(unique(results$HRVIndices$group), collapse = "_Vs_"),
-        ".xlsx"
+saveHRVIndices <- function(RHRVEasyResultObject, saveHRVIndicesInPath = ".") {
+  tryCatch(
+    {
+      filename <- file.path(
+        saveHRVIndicesInPath,
+        paste0(
+          paste(unique(RHRVEasyResultObject$HRVIndices$group), collapse = "_Vs_"),
+          ".xlsx"
+        )
       )
-    )
-    write_xlsx(results$HRVIndices, filename)
-  },
-  error = function(e) {
-    message(paste0("Could not save indices in path '", saveHRVIndicesInPath, "'"))
-    message(e)
-  })
+      write_xlsx(RHRVEasyResultObject$HRVIndices, filename)
+    },
+    error = function(e) {
+      message(paste0("Could not save indices in path '", saveHRVIndicesInPath, "'"))
+      message(e)
+    }
+  )
 }
 
 
 
 #' @importFrom boot boot.ci
 #' @importFrom boot boot
+#' @importFrom stats t.test
 computeEasyCIs <- function(easyObject, test, confLevel) {
   groupedData <- split(easyObject$HRVIndices[[test$HRVIndex]], easyObject$HRVIndices$group)
   if (test$method == "ANOVA") {
@@ -128,12 +182,14 @@ printGroupCI <- function(cis, group, digits, nspaces = 2) {
     rep(" ", nspaces), group, "'s mean", conf * 100, "% CI: (",
     round(cis[[group]][1], digits = digits), ", ",
     round(cis[[group]][2], digits = digits), ")",
-    " [", method,"]\n"
+    " [", method, "]\n"
   )
 }
 
 
 #' @importFrom tibble as_tibble
+#' @importFrom utils capture.output
+#' @method print RHRVEasyResult
 #' @export
 print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
   firstLevelSpaces <- 2
@@ -155,8 +211,8 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
       with(test, {
         cat(
           sep = "",
-          "Significant differences in ",  HRVIndex, " (", method, ", ",
-          adjMethod," p-value = ", format(adj.p.value, digits), "):\n"
+          "Significant differences in ", HRVIndex, " (", method, ", ",
+          adjMethod, " p-value = ", format(adj.p.value, digits), "):\n"
         )
       })
       if (length(cis) == 2) {
@@ -188,10 +244,10 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
           # eliminate tibble head and type info
           posthocTable <- posthocTable[-c(1, 3)]
           maxLen <- max(sapply(posthocTable, nchar))
-          printSpaces <- paste0(rep(" ", nPosthocSpaces), collapse="")
+          printSpaces <- paste0(rep(" ", nPosthocSpaces), collapse = "")
           posthocTable <- sapply(posthocTable, \(x) paste0(printSpaces, x))
           cat(paste0(posthocTable, collapse = "\n"))
-          cat("\n", printSpaces, rep("-", maxLen), "\n", sep="")
+          cat("\n", printSpaces, rep("-", maxLen), "\n", sep = "")
           for (group in sort(names(cis))) {
             printGroupCI(cis, group, digits, nspaces = nPosthocSpaces)
           }
@@ -204,6 +260,7 @@ print.RHRVEasyResult <- function(x, digits = getOption("digits"), ...) {
 }
 
 
+#' @importFrom stats p.adjust
 buildEasyOptions <- function(verbose, significance, method) {
   # fake call to p.adjust to check for the method name
   invisible(p.adjust(rep(0.1, 3), method = method))
@@ -221,27 +278,35 @@ calculateHRVIndices <- function(
     format,
     typeAnalysis,
     nonLinear,
-    doRQA,   # ignored if nonLinear = FALSE
+    doRQA, # ignored if nonLinear = FALSE
     nJobs,
     easyOptions,
     ...) {
+  cl <- prepareEasyCluster(nJobs, easyOptions$verbose)
+  easyOptions$parallel <- !is.null(cl)
 
+  filesByFolder <- lapply(folders, \(folder) {
+    fileValidation(folder, easyOptions)
+    data.frame(
+      "folder" = folder,
+      "file" = list.files(folder),
+      "group" = splitPath(folder)[[1]]
+    )
+  })
+  files <- do.call(rbind, filesByFolder)
+  files$group <- factor(files$group)
 
-    cl <- prepareEasyCluster(nJobs, easyOptions$verbose)
-    easyOptions$parallel <- !is.null(cl)
-
-    filesByFolder <- lapply(folders, \(folder) {
-      fileValidation(folder, easyOptions)
-      data.frame(
-        "folder" = folder,
-        "file" = list.files(folder),
-        "group" = splitPath(folder)[[1]]
-      )
-    })
-    files <- do.call(rbind, filesByFolder)
-    files$group <- factor(files$group)
-
-    timeResults <- easyTimeAnalysis(
+  timeResults <- easyTimeAnalysis(
+    format = format,
+    files = files$file,
+    groups = files$group,
+    paths = files$folder,
+    easyOptions = easyOptions,
+    ...
+  )
+  # Frequency analysis
+  if (typeAnalysis == "fourier") {
+    freqResults <- easyFreqAnalysis(
       format = format,
       files = files$file,
       groups = files$group,
@@ -249,61 +314,49 @@ calculateHRVIndices <- function(
       easyOptions = easyOptions,
       ...
     )
-    # Frequency analysis
-    if (typeAnalysis == "fourier") {
-      freqResults <- easyFreqAnalysis(
+  }
+  if (typeAnalysis == "wavelet") {
+    freqResults <-
+      easyWaveletAnalysis(
+        format = format,
+        files = files$file,
+        groups = files$group,
+        paths = files$folder,
+        type = typeAnalysis,
+        easyOptions = easyOptions,
+        ...
+      )
+  }
+  if (nonLinear) {
+    nonlinearResults <-
+      easyNonLinearAnalysis(
         format = format,
         files = files$file,
         groups = files$group,
         paths = files$folder,
         easyOptions = easyOptions,
+        doRQA = doRQA,
         ...
       )
-    }
-    if (typeAnalysis == "wavelet") {
-      freqResults <-
-        easyWaveletAnalysis(
-          format = format,
-          files = files$file,
-          groups = files$group,
-          paths = files$folder,
-          type = typeAnalysis,
-          easyOptions = easyOptions,
-          ...
-        )
-    }
-    if (nonLinear) {
-      nonlinearResults <-
-        easyNonLinearAnalysis(
-          format = format,
-          files = files$file,
-          groups = files$group,
-          paths = files$folder,
-          easyOptions = easyOptions,
-          doRQA = doRQA,
-          ...
-        )
-    }
-    if (!is.null(cl)) {
-      parallel::stopCluster(cl)
-    }
+  }
+  if (!is.null(cl)) {
+    parallel::stopCluster(cl)
+  }
 
-    # Merge
+  # Merge
+  allResults <- merge(
+    timeResults,
+    freqResults,
+    by = c("file", "group"),
+    all = TRUE
+  )
+  if (nonLinear) {
     allResults <- merge(
-      timeResults,
-      freqResults,
+      allResults,
+      nonlinearResults,
       by = c("file", "group"),
       all = TRUE
     )
-    if (nonLinear) {
-      allResults <- merge(
-        allResults,
-        nonlinearResults,
-        by = c("file", "group"),
-        all = TRUE
-      )
-    }
-    allResults
   }
-
-
+  allResults
+}

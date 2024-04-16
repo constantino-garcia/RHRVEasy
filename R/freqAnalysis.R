@@ -2,6 +2,7 @@
 #' @importFrom foreach foreach
 #' @importFrom RHRV CreateFreqAnalysis
 #' @importFrom RHRV InterpolateNIHR CalculatePSD CalculateEnergyInPSDBands
+#' @importFrom stats median
 easyFreqAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
     opts <- NULL
@@ -55,6 +56,7 @@ easyFreqAnalysis <-
 #' @importFrom foreach foreach
 #' @importFrom RHRV CreateFreqAnalysis
 #' @importFrom RHRV InterpolateNIHR CalculatePowerBand
+#' @importFrom stats median
 easyWaveletAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
     opts <- NULL

@@ -32,6 +32,7 @@ tryNormalityCheck <- function(x) {
 
 
 #' @importFrom broom tidy
+#' @importFrom stats formula aov rstandard kruskal.test
 columnStats <- function(HRVIndices, column, easyOptions) {
   analysisFormula <- formula(paste(column, "~ group"))
   statsResults <- aov(analysisFormula, data = HRVIndices)
@@ -55,6 +56,7 @@ columnStats <- function(HRVIndices, column, easyOptions) {
 #' @importFrom tidyr pivot_longer
 #' @importFrom tidyr all_of
 #' @importFrom broom tidy
+#' @importFrom stats pairwise.t.test
 indexPairwiseComparison <- function(HRVIndexValues, group, omnibusMethod) {
   if (omnibusMethod == "ANOVA") {
     pairwiseComp <- pairwise.t.test(HRVIndexValues, group, p.adjust.method = "none")
@@ -77,6 +79,7 @@ indexPairwiseComparison <- function(HRVIndexValues, group, omnibusMethod) {
 
 
 #' @importFrom iterators iter
+#' @importFrom stats p.adjust
 statsAnalysis <- function(HRVIndices, easyOptions) {
   indicesNames <- setdiff(colnames(HRVIndices), c("file", "group", "timeLag", "embeddingDim"))
   pVals <- foreach(

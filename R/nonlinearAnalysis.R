@@ -31,6 +31,7 @@ tryRQA <- function(hrv.data, file, config) {
 }
 
 
+#' @importFrom stats approxfun uniroot
 findSmallRadius <- function(hrv.data, file, config) {
   cd = hrv.data$NonLinearAnalysis[[1]]$correlation$computations
   if (!is.null(cd)) {

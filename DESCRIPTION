@@ -13,7 +13,7 @@ Description: Runs time-based analysis, frequency-based analysis and non-linear a
   of Heart Rate Variability data with the aim of performing a statistical comparison 
   between several groups (e.g., control and treatment). The user just needs to specify
   the path to the groups' data files.
-License: `use_mit_license()`
+License: GPL (>= 3)
 Encoding: UTF-8
 Imports: 
   boot,
