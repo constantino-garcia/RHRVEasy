@@ -1,3 +1,5 @@
+GPLv3.txt
+^README.md
 ^\.gitignore$
 ^inst/scripts$
 ^.*\.Rproj$
