@@ -24,7 +24,7 @@ devtools::install_github("constantino-garcia/RHRVEasy")
 ```
 
 #### Option 2: Install from source 
-Using the RHRVEasy_XXX.tar.gz file, where XXX is the version of the package. In an R console, execute the following commands:
+Using the RHRVEasy_XXX.tar.gz file, where XXX is the version of the package (See [releases](https://github.com/constantino-garcia/RHRVEasy/releases/) to download it). In an R console, execute the following commands:
 ```R
 install.packages("path/to/RHRVEasy_XXX.tar.gz", repos = NULL, type = "source")
 ```
