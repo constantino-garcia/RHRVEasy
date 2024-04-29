@@ -11,10 +11,7 @@ An R package created to automate all steps of a HRV analysis, including data pre
 ## Installation
 ### Installing R
 1. Go to the [R project website](https://www.r-project.org/) and download the latest version of R for your operating system. In Linux systems, it may be easier to use the package manager to install R (In that case, step 2 is not necessary).
-2. Install R by following the instructions provided in the website.
-
-### Installing Rtools (Windows only)
-1. (Windows only) Download and install [Rtools](https://cran.r-project.org/bin/windows/Rtools/). This is necessary to install packages from source.
+2. Install R by following the instructions provided in the website. Default options are fine for most users.
 
 ### Installing RHRVEasy
 There are several options to install the package:
