@@ -26,6 +26,13 @@ devtools::install_github("constantino-garcia/RHRVEasy")
 #### Option 2: Install from source 
 Using the RHRVEasy_XXX.tar.gz file, where XXX is the version of the package (See [releases](https://github.com/constantino-garcia/RHRVEasy/releases/) to download it). In an R console, execute the following commands:
 ```R
+# Install dependencies
+install.packages(c("boot", "broom", "doSNOW", "foreach",
+  "iterators", "nonlinearTseries", "plotrix",
+  "PMCMRplus", "progress", "RHRV", "segmented", 
+  "tibble", "tidyr", "writexl"))
+# Install package. Remember to replace path/to/RHRVEasy_XXX.tar.gz with the actual path and 
+# version of the package
 install.packages("path/to/RHRVEasy_XXX.tar.gz", repos = NULL, type = "source")
 ```
 
@@ -33,7 +40,7 @@ install.packages("path/to/RHRVEasy_XXX.tar.gz", repos = NULL, type = "source")
 In case dependencies are not installed automatically, you can install them manually by running:
 ```R
 install.packages(c("boot", "broom", "doSNOW", "foreach",
-  "iterators", "nonlinearTseries", "parallel", "plotrix",
+  "iterators", "nonlinearTseries", "plotrix",
   "PMCMRplus", "progress", "RHRV", "segmented", 
   "tibble", "tidyr", "writexl"))
 ```
@@ -62,6 +69,8 @@ More details about the API can be found in the package documentation `RHRVEasy_X
 The folder `RRData` contains a zip file with the data used to test the package in the paper. After unzipping, these data can also be used to test the package or follow the tutorial (see next section).
 
 ## Tutorial
-The `RHRVEasyTutorial.Rmd` provides a step-by-step introduction to the package. Furthermore, the results of the paper can be reproduced by completing the tutorial. To follow the tutorial, please refer to the `Data` section and unzip the zip folder under the `RRData` directory.
+The `RHRVEasyTutorial.Rmd`/`RHRVEasyTutorial.R` provides a step-by-step introduction to the package. Furthermore, the results of the paper can be reproduced by completing the tutorial. To follow the tutorial, please refer to the `Data` section and unzip the zip folder under the `RRData` directory.
 
+Note that to use the R Markdown version of the tutorial, a [LaTex](https://www.latex-project.org/get/) distribution is needed. We also recommend installing [Rstudio](https://posit.co/download/rstudio-desktop/). After installing LaTex+Rstudio, open the `RHRVEasyTutorial.Rmd` file and click on the `Knit` button to compile the tutorial. (If a pop-up window appears, asking you to install dependencies, please accept this prompt.)
 
+If not LaTex distribution is installed, you may use the R script `RHRVEasyTutorial.R` to run the tutorial.

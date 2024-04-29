@@ -75,7 +75,7 @@ NSR_DB and CHF_DB databases, and and performs a statistical comparison of each
 index correcting the significance level with the Bonferroni method. Note the 
 use of the `nJobs` to use several cores and parallelize the computations. Whith `nJobs = -1`, it uses all available cores; if an integer greater than 0 is indicated, it uses the number of cores indicated by the integer.
 
-```{r, results=FALSE, cache=TRUE}
+```{r, results=FALSE, cache=2}
 easyAnalysis <- RHRVEasy(folders = c(NSR_DB, CHF_DB), nJobs = -1)
 ```
 
@@ -113,7 +113,7 @@ X., & Márquez, D. G. (2013). A new algorithm for wavelet-based heart rate
 variability analysis. Biomedical Signal Processing and Control, 8(6), 542-550" 
 for details):
 
-```{r, results=FALSE, cache=TRUE}
+```{r, results=FALSE, cache=2}
 easyAnalysisWavelet <- RHRVEasy(
   folders = c(NSR_DB, CHF_DB), 
   typeAnalysis = 'wavelet', 
@@ -187,7 +187,7 @@ statistically significant differences between all pairs of groups. In such a
 scenario the Dunn post-hoc is used to find which pairs of groups present 
 differences:
 
-```{r, cache=TRUE, results=FALSE}
+```{r, cache=2, results=FALSE}
 #Comparison of the four databases
 easyAnalysis4 <- RHRVEasy(
   folders = c(NSR_DB, CHF_DB, NSR_HALF_DB, CHF_HALF_DB),
