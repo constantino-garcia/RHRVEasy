@@ -1,6 +1,9 @@
 
 
 # RHRVEasy
+
+[![Github actions CI](https://github.com/constantino-garcia/RHRVEasy/actions/workflows/github-actions.yml/badge.svg)](https://github.com/constantino-garcia/RHRVEasy/actions/workflows/github-actions.yml/badge.svg)
+
 An R package created to automate all steps of a HRV analysis, including data preprocessing, indices calculation, and statistical analysis. The methods of this package are described in:
 
 > García, C.A., Bardají, S., Pérez-Tirador, P., Otero, A. **RHRVEasy: heart rate variability made easy**. *Under review*
@@ -62,6 +65,6 @@ More details about the API can be found in the package documentation `RHRVEasy_X
 The folder `RRData` contains a zip file with the data used to test the package in the paper. After unzipping, these data can also be used to test the package or follow the tutorial (see next section).
 
 ## Tutorial
-The `RHRVEasyTutorial.Rmd` provides a step-by-step introduction to the package. Furthermore, the results of the paper can be reproduced by completing the tutorial. To follow the tutorial, please refer to the `Data` section.
+The `RHRVEasyTutorial.Rmd` provides a step-by-step introduction to the package. Furthermore, the results of the paper can be reproduced by completing the tutorial. To follow the tutorial, please refer to the `Data` section and unzip the zip folder under the `RRData` directory.
 
 

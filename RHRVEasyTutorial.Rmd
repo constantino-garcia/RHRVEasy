@@ -1,6 +1,8 @@
 ---
 title: "RHRVEasy tutorial"
 output: 
+  pdf_document: 
+    toc: yes
   html_document:
     toc: TRUE
 ---
@@ -35,16 +37,18 @@ The CHF_HALF_DB database is made up of 14 recordings chosen from the 28 of the
 CHF database. The four databases are available in the [RHRVEasy GitHub 
 repository](https://github.com/constantino-garcia/RHRVEasy). To run this tutorial, 
 the following four variables must contain the folder of the local machine where 
-the files of each of these databases are
+the files of each of these databases are. Note that the four folders can be found 
+as a zip file in the Github repository, under the `RRData` directory (refer to the `data` 
+section in the GitHub `README`).
 
 ```{r}
 library("RHRVEasy")
 
-basePath = "RRData/" 
-NSR_DB = file.path(basePath, "normal")
-CHF_DB = file.path(basePath, "chf")
-NSR_HALF_DB = file.path(basePath, "normal_half")
-CHF_HALF_DB = file.path(basePath, "chf_half")
+basePath <- "RRData/" 
+NSR_DB <- file.path(basePath, "normal")
+CHF_DB <- file.path(basePath, "chf")
+NSR_HALF_DB <- file.path(basePath, "normal_half")
+CHF_HALF_DB <- file.path(basePath, "chf_half")
 ```
 
 RHRVEasy permits creating an Excel spreadsheet with all the HRV indices 
@@ -52,7 +56,7 @@ calculated for each recording. The following variable must contain the folder
 on the local machine where the Excel spreadsheet is to be saved:
 
 ```{r}
-spreadsheetPath = basePath
+spreadsheetPath <- basePath
 ```
 
 # 1. Time and frequency analysis
@@ -72,7 +76,7 @@ index correcting the significance level with the Bonferroni method. Note the
 use of the `nJobs` to use several cores and parallelize the computations. Whith `nJobs = -1`, it uses all available cores; if an integer greater than 0 is indicated, it uses the number of cores indicated by the integer.
 
 ```{r, results=FALSE, cache=TRUE}
-easyAnalysis = RHRVEasy(folders = c(NSR_DB, CHF_DB), nJobs = -1)
+easyAnalysis <- RHRVEasy(folders = c(NSR_DB, CHF_DB), nJobs = -1)
 ```
 
 When the returned object is displayed in the console, it shows which indices 
@@ -110,7 +114,7 @@ variability analysis. Biomedical Signal Processing and Control, 8(6), 542-550"
 for details):
 
 ```{r, results=FALSE, cache=TRUE}
-easyAnalysisWavelet = RHRVEasy(
+easyAnalysisWavelet <- RHRVEasy(
   folders = c(NSR_DB, CHF_DB), 
   typeAnalysis = 'wavelet', 
   n_jobs = -1
@@ -139,8 +143,8 @@ level can also be changed using the `significance` parameter (in both
 `RHRVEasy` and `RHRVEasyStats` functions).
 
 ```{r}
-easyAnalysisFDR = RHRVEasyStats(easyAnalysis, correctionMethod =  'fdr')
-pValues = merge(
+easyAnalysisFDR <- RHRVEasyStats(easyAnalysis, correctionMethod =  'fdr')
+pValues <- merge(
   easyAnalysis$stats, 
   easyAnalysisFDR$stats,
   by = setdiff(names(easyAnalysis$stats), "adj.p.value"),
@@ -164,8 +168,8 @@ The name of the spreadsheet generated is "<group 1 name>_Vs_<group 2 name>
 .xlsx":
 
 ```{r, eval=FALSE}
-easyAnalysis = RHRVEasy(folders = c(NSR_DB, CHF_DB), 
-                        saveHRVIndicesInPath = spreadsheetPath)
+easyAnalysis <- RHRVEasy(folders = c(NSR_DB, CHF_DB), 
+                         saveHRVIndicesInPath = spreadsheetPath)
 ```
 
 This spreadsheet can also be generated from the object returned by `RHRVEasy` 
@@ -185,7 +189,7 @@ differences:
 
 ```{r, cache=TRUE, results=FALSE}
 #Comparison of the four databases
-easyAnalysis4 = RHRVEasy(
+easyAnalysis4 <- RHRVEasy(
   folders = c(NSR_DB, CHF_DB, NSR_HALF_DB, CHF_HALF_DB),
   nJobs = -1
 )
@@ -217,12 +221,12 @@ following analysis modifies the the limits of the ULF, VLF, LF and HF spectral
 bands, and uses an interpolation frequency (`freqhr`) of 2 Hz:
 
 ```{r, results=FALSE, eval=FALSE}
-easyAnalysisOverwritten = RHRVEasy(folders = c(NSR_DB, CHF_DB),
-                                   freqhr = 2, 
-                                   ULFmin = 0, ULFmax = 0.02, 
-                                   VLFmin = 0.02,  VLFmax = 0.07, 
-                                   LFmin = 0.07, LFmax = 0.20, 
-                                   HFmin = 0.20, HFmax = 0.5)
+easyAnalysisOverwritten <- RHRVEasy(folders = c(NSR_DB, CHF_DB),
+                                    freqhr = 2, 
+                                    ULFmin = 0, ULFmax = 0.02, 
+                                    VLFmin = 0.02,  VLFmax = 0.07, 
+                                    LFmin = 0.07, LFmax = 0.20, 
+                                    HFmin = 0.20, HFmax = 0.5)
 ```
 
 # 6. Nonlinear analysis
@@ -242,7 +246,7 @@ running this chunk of code. Alternatively, you may load the RDS file
 `RRData/paperExperiments.RDS` to explore the statistical results.
 
 ```{r, eval=FALSE}
-fullAnalysis = RHRVEasy(
+fullAnalysis <- RHRVEasy(
   folders = c(NSR_DB, CHF_DB, NSR_HALF_DB, CHF_HALF_DB),
   nJobs = -1,
   nonLinear =  TRUE, 
