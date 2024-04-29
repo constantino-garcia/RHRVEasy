@@ -6,9 +6,10 @@ GPLv3.txt
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^RRData/
-^RHRVEasyTutorial.Rmd
+^RHRVEasyTutorial*
 ^tmp/
 ^RHRVEasyTutorial_cache/
 ^LICENSE\.md$
 ^.*\.html$
 ^.*\.xlsx$
+^submission$
