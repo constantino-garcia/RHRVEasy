@@ -16,12 +16,10 @@ easyTimeAnalysis <-
         path = paths,
         .combine = rbind.data.frame,
         #.export = c("prepareAnalysis", "easyCall"),
+        .packages = "RHRV",
         .errorhandling = "pass",
         .options.snow = opts
       ) %dopar% {
-        suppressWarnings(
-          suppressPackageStartupMessages(library("RHRV", character.only = TRUE, warn.conflicts = FALSE))
-        )
         hrv.data <- prepareAnalysis(file = file, rrs = path, format = format,
                                       easyOptions = easyOptions)
         hrv.data <- easyCall(hrv.data, CreateTimeAnalysis, ...)

@@ -1,13 +1,13 @@
-library("nonlinearTseries")
-library("segmented")
-
 # filter non-scaling regions ----------------------------------------------
 
 nltsFilter <- function(x, ...) {
   UseMethod("nltsFilter", x)
 }
 
-nltsFilter.corrDim <- function(x, threshold = 0.95) {
+# @importFrom nonlinearTseries corrDim
+#' @export
+nltsFilter.corrDim <- function(x, threshold = 0.95, ...) {
+  rgs <- list(...)
   if (threshold < 0 || threshold > 1) {
     stop("threshold for corrDim objects should be in [0,1]")
   }
@@ -21,8 +21,10 @@ nltsFilter.corrDim <- function(x, threshold = 0.95) {
   x
 }
 
+# @importFrom nonlinearTseries maxLyapunov
 #' @importFrom stats ksmooth median
-nltsFilter.maxLyapunov <- function(x, kernel = "normal", bandwidth = 2) {
+#' @export
+nltsFilter.maxLyapunov <- function(x, kernel = "normal", bandwidth = 2, ...) {
   smoothedS <- apply(x$s.function, 1, function(sf, time, kernel, bandwidth) {
     ksmooth(time, sf, kernel, bandwidth)
   }, time = x$time, kernel = kernel, bandwidth = bandwidth)
@@ -189,12 +191,15 @@ estimateAllScalingRegions <- function(y, x, numberOfLinearRegions, initialValues
 
 # estimateScalingRegion -------------------------------------------------
 
-estimateScalingRegion <- function(y, numberOfLinearRegions,
-                                   initialValues, doPlot, ...) {
-  UseMethod("estimateScalingRegion", y)
+# Estimates the scaling region of a nonlinearTseries object
+estimateScalingRegion <- function(x, numberOfLinearRegions,
+                                  initialValues, doPlot, ...) {
+  UseMethod("estimateScalingRegion", x)
 }
 
-# estimates the scaling region of a corrDim object by:
+# Estimate the scaling region of a corrDim object.
+# @details
+# Estimates the scaling region of a corrDim object by:
 # 1.- calculating smooth local slopes (using the 'ksmooth' with the  kernel
 # specified by 'kernel' and the bandwidth 'bandwidth'. If they are not specified,
 # a gaussian kernel and a proper bandwidth will be used.)
@@ -206,10 +211,11 @@ estimateScalingRegion <- function(y, numberOfLinearRegions,
 #' @importFrom nonlinearTseries plotLocalScalingExp
 #' @importFrom graphics abline
 #' @importFrom stats sd
+#' @export
 estimateScalingRegion.corrDim <- function(x, numberOfLinearRegions = 4,
                                            initialValues = NULL, doPlot = FALSE,
                                            bandwidth = NULL,
-                                           kernel = c("normal", "box")) {
+                                           kernel = c("normal", "box"), ...) {
   TRUST_THRESHOLD <- 0.5
   # rename for convenience
   cd <- x
@@ -270,8 +276,9 @@ estimateScalingRegion.corrDim <- function(x, numberOfLinearRegions = 4,
 # The initial breakPoints that the method requires can be specified by 'initialValues'.
 # If they are not specified, the method selects them automatically.
 # It must be noted that 'length(initialValues) + 1 = numberOfLinearRegion'.
+#' @export
 estimateScalingRegion.maxLyapunov <- function(x, numberOfLinearRegions = 2,
-                                               initialValues = NULL, doPlot = FALSE) {
+                                               initialValues = NULL, doPlot = FALSE, ...) {
   # find scaling regions per embedding dimension
   scalingRegionMatrix <- estimateAllScalingRegions(x$s.function[, -1], x$time[-1],
                                                    numberOfLinearRegions, initialValues,

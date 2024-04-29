@@ -1,8 +1,8 @@
-devtools::load_all(".")
-#library("RHRVEasy")
+# devtools::load_all(".")
+library("RHRVEasy")
 rm(anal)
 anal <- RHRVEasy(
-  folders = c("/data/easy/current_chf2/", "/data/easy/current_normal2/"),
+  folders = c("/data/easy/chf_mini/", "/data/easy/normal_mini//"),
   correctionMethod = "fdr",
   nonLinear = FALSE,
   doRQA = TRUE,

@@ -575,15 +575,11 @@ easyNonLinearAnalysis <-
       itcounter = seq_along(files),
       group = groups,
       path = paths,
+      .packages = "RHRV",
       .combine = rbind,
       .errorhandling = "pass",
       .options.snow = opts
     ) %dopar% {
-      suppressWarnings(
-        suppressPackageStartupMessages(
-          library("RHRV", character.only = TRUE, warn.conflicts = FALSE)
-        )
-      )
       fileResults <- nlaSingleFile(file, path, format, group, easyOptions, doRQA)
       if (easyOptions$verbose && !easyOptions$parallel) {
         opts$progress(itcounter)
