@@ -5,10 +5,10 @@
 #' @importFrom stats median
 easyFreqAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
-    opts <- NULL
-    if (easyOptions$verbose) {
-      opts <- list("progress" = updateProgressFactory("Freq analysis", files))
-    }
+    # opts <- NULL
+    # if (easyOptions$verbose) {
+    #   opts <- list("progress" = updateProgressFactory("Freq analysis", files))
+    # }
     dataFrame <- foreach(
       file = files,
       itcounter = seq_along(files),
@@ -17,8 +17,8 @@ easyFreqAnalysis <-
       .combine = rbind.data.frame,
       .export = c("prepareAnalysis", "easyCall"),
       .packages = "RHRV",
-      .errorhandling = "pass",
-      .options.snow = opts
+      #.options.snow = opts
+      .errorhandling = "pass"
     ) %dopar% {
       hrv.data <- prepareAnalysis(file = file, rrs = path, format = format,
                                     easyOptions = easyOptions)
@@ -40,8 +40,11 @@ easyFreqAnalysis <-
       x1 <- easyCall(hrv.data, CalculateEnergyInPSDBands, ...)
       names(x1) <- c("ULF", "VLF", "LF", "HF")
       rowList <- c(list("file" = file), x1, list("group" = group))
-      if (easyOptions$verbose && !easyOptions$parallel) {
-        opts$progress(itcounter)
+      # if (easyOptions$verbose && !easyOptions$parallel) {
+      #   opts$progress(itcounter)
+      # }
+      if (easyOptions$verbose) {
+        message(paste("Freq. analysis of", file, "done"))
       }
       as.data.frame(rowList)
     }
@@ -55,9 +58,9 @@ easyFreqAnalysis <-
 easyWaveletAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
     opts <- NULL
-    if (easyOptions$verbose) {
-      opts <- list("progress" = updateProgressFactory("Wavelet analysis", files))
-    }
+    # if (easyOptions$verbose) {
+    #   opts <- list("progress" = updateProgressFactory("Wavelet analysis", files))
+    # }
     freqResults <- foreach(
       file = files,
       itcounter = seq_along(files),
@@ -66,8 +69,8 @@ easyWaveletAnalysis <-
       .combine = rbind.data.frame,
       .export = c("prepareAnalysis", "easyCall"),
       .packages = "RHRV",
-      .errorhandling = "pass",
-      .options.snow = opts
+      #.options.snow = opts,
+      .errorhandling = "pass"
     ) %dopar% {
       hrv.data <- prepareAnalysis(file = file, rrs = path, format = format, easyOptions = easyOptions)
       hrv.data <- withCallingHandlers(
@@ -101,8 +104,11 @@ easyWaveletAnalysis <-
         )
       ] <- NULL
       rowList <- c(resultsWavelet, list("group" = group))
-      if (easyOptions$verbose && !easyOptions$parallel) {
-        opts$progress(itcounter)
+      #if (easyOptions$verbose && !easyOptions$parallel) {
+      #  opts$progress(itcounter)
+      #}
+      if (easyOptions$verbose) {
+        message(paste("Freq. analysis of", file, "done"))
       }
       as.data.frame(rowList)
     }

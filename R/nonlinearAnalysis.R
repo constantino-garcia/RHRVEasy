@@ -566,10 +566,10 @@ nlaSingleFile <- function(file, rrs2, format, group, easyOptions, doRQA) {
 #' @importFrom nonlinearTseries rqa
 easyNonLinearAnalysis <-
   function(format, files, groups, paths, easyOptions, doRQA, ...) {
-    opts <- NULL
-    if (easyOptions$verbose) {
-      opts <- list("progress" = updateProgressFactory("Non-linear analysis", files))
-    }
+    # opts <- NULL
+    # if (easyOptions$verbose) {
+    #   opts <- list("progress" = updateProgressFactory("Non-linear analysis", files))
+    # }
     resultsDataFrame <-  foreach(
       file = files,
       itcounter = seq_along(files),
@@ -577,12 +577,15 @@ easyNonLinearAnalysis <-
       path = paths,
       .packages = "RHRV",
       .combine = rbind,
-      .errorhandling = "pass",
-      .options.snow = opts
+      # .options.snow = opts,
+      .errorhandling = "pass"
     ) %dopar% {
       fileResults <- nlaSingleFile(file, path, format, group, easyOptions, doRQA)
-      if (easyOptions$verbose && !easyOptions$parallel) {
-        opts$progress(itcounter)
+      # if (easyOptions$verbose && !easyOptions$parallel) {
+      #   opts$progress(itcounter)
+      # }
+      if (easyOptions$verbose) {
+        message(paste("Non-linear analysis of", file, "done"))
       }
       fileResults
     } # end of %dopar%

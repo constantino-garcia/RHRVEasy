@@ -4,10 +4,10 @@
 #' @importFrom foreach %dopar% %do%
 easyTimeAnalysis <-
   function(format, files, groups, paths, easyOptions, ...) {
-    opts <- NULL
-    if (easyOptions$verbose) {
-      opts <- list("progress" = updateProgressFactory("Time analysis", files))
-    }
+    # opts <- NULL
+    # if (easyOptions$verbose) {
+    #   opts <- list("progress" = updateProgressFactory("Time analysis", files))
+    # }
     dataFrame <- suppressPackageStartupMessages({
       foreach(
         file = files,
@@ -17,8 +17,8 @@ easyTimeAnalysis <-
         .combine = rbind.data.frame,
         #.export = c("prepareAnalysis", "easyCall"),
         .packages = "RHRV",
-        .errorhandling = "pass",
-        .options.snow = opts
+	# .options.snow = opts,
+        .errorhandling = "pass"
       ) %dopar% {
         hrv.data <- prepareAnalysis(file = file, rrs = path, format = format,
                                       easyOptions = easyOptions)
@@ -30,8 +30,11 @@ easyTimeAnalysis <-
           list("group" = group),
           results
         )
-        if (easyOptions$verbose && !easyOptions$parallel) {
-          opts$progress(itcounter)
+        # if (easyOptions$verbose && !easyOptions$parallel) {
+        #   opts$progress(itcounter)
+        # }
+        if (easyOptions$verbose) {
+          message(paste("Time analysis of", file, "done"))
         }
         as.data.frame(rowList)
       }
