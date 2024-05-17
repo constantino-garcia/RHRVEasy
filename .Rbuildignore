@@ -1,5 +1,5 @@
 .github
-GPLv3.txt
+LICENSE.txt
 ^README.md
 ^\.gitignore$
 ^inst/scripts$
