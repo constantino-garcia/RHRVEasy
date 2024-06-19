@@ -43,6 +43,7 @@ RHRVEasy <-
            doRQA = FALSE, # ignored if nonLinear = FALSE
            nJobs = 1,
            saveHRVIndicesInPath = NULL,
+           clusterLogFile = "",
            ...) {
     typeAnalysis <- match.arg(typeAnalysis)
     correctionMethod <- match.arg(correctionMethod)
@@ -59,6 +60,7 @@ RHRVEasy <-
       doRQA = doRQA,
       nJobs = nJobs,
       easyOptions = easyOptions,
+      clusterLogFile = clusterLogFile,
       ...
     )
     tempfilename <- tempfile(pattern = "RHRVEasy", tmpdir = tempdir(), fileext = ".RDS")
@@ -281,8 +283,9 @@ calculateHRVIndices <- function(
     doRQA, # ignored if nonLinear = FALSE
     nJobs,
     easyOptions,
+    clusterLogFile,
     ...) {
-  cl <- prepareEasyCluster(nJobs, easyOptions$verbose)
+  cl <- prepareEasyCluster(nJobs, easyOptions$verbose, clusterLogFile)
   easyOptions$parallel <- !is.null(cl)
 
   filesByFolder <- lapply(folders, \(folder) {

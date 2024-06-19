@@ -73,7 +73,7 @@ easyCall <- function(hrv.data, mf, ...) {
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
 #' @importFrom doSNOW registerDoSNOW
-prepareEasyCluster <- function(nJobs, verbose) {
+prepareEasyCluster <- function(nJobs, verbose, clusterLogFile) {
   nCores <- parallel::detectCores(logical = FALSE)
   if (nJobs <= 0) {
     nJobs <- nCores
@@ -81,9 +81,9 @@ prepareEasyCluster <- function(nJobs, verbose) {
     nJobs <- nCores
   }
   if (nJobs > 1) {
-    cl <- parallel::makeCluster(nJobs, outfile="") # using outfile = "" may be useful for debugging
-    # doParallel::registerDoParallel(cl)
-    doSNOW::registerDoSNOW(cl)
+    cl <- parallel::makeCluster(nJobs, outfile=clusterLogFile) # using outfile = "" may be useful for debugging
+    doParallel::registerDoParallel(cl)
+    #doSNOW::registerDoSNOW(cl)
     if (verbose) {
       message(paste("Registering cluster with", nJobs, "nodes"))
     }
